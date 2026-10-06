@@ -1,0 +1,7510 @@
+{
+  "$defs": {
+    "ApiError": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        },
+        "code": {
+          "enum": [
+            "bad_request",
+            "invalid_url",
+            "no_api_key",
+            "run_active",
+            "not_found",
+            "bad_state",
+            "not_ready"
+          ],
+          "title": "Code",
+          "type": "string"
+        },
+        "active_run": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RunSummary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "detail",
+        "code",
+        "active_run"
+      ],
+      "title": "ApiError",
+      "type": "object"
+    },
+    "ArtifactRef": {
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "bytes": {
+          "title": "Bytes",
+          "type": "integer"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url",
+        "bytes",
+        "sha256"
+      ],
+      "title": "ArtifactRef",
+      "type": "object"
+    },
+    "Assumptions": {
+      "additionalProperties": false,
+      "description": "Prices used client-side to turn per-call savings into yearly figures.",
+      "properties": {
+        "eur_per_kwh": {
+          "title": "Eur Per Kwh",
+          "type": "number"
+        },
+        "eu_ets_eur_per_t": {
+          "title": "Eu Ets Eur Per T",
+          "type": "number"
+        },
+        "vcm_eur_per_t": {
+          "title": "Vcm Eur Per T",
+          "type": "number"
+        },
+        "default_calls_per_year": {
+          "title": "Default Calls Per Year",
+          "type": "integer"
+        },
+        "notes": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Notes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "eur_per_kwh",
+        "eu_ets_eur_per_t",
+        "vcm_eur_per_t",
+        "default_calls_per_year",
+        "notes"
+      ],
+      "title": "Assumptions",
+      "type": "object"
+    },
+    "BaselineCompletedData": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "duration_ms": {
+          "title": "Duration Ms",
+          "type": "integer"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "calibration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Calibration"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "original": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MeasureStats"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "cv_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cv Pct"
+        },
+        "power": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PowerInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "ok",
+        "duration_ms",
+        "error",
+        "calibration",
+        "original",
+        "cv_pct",
+        "power"
+      ],
+      "title": "BaselineCompletedData",
+      "type": "object"
+    },
+    "BenchStats": {
+      "additionalProperties": false,
+      "properties": {
+        "original": {
+          "$ref": "#/$defs/MeasureStats"
+        },
+        "candidate": {
+          "$ref": "#/$defs/MeasureStats"
+        },
+        "delta_pct": {
+          "title": "Delta Pct",
+          "type": "number"
+        },
+        "delta_ci_pct": {
+          "$ref": "#/$defs/CI"
+        },
+        "p_value": {
+          "title": "P Value",
+          "type": "number"
+        },
+        "p_holm": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "P Holm"
+        },
+        "significant": {
+          "title": "Significant",
+          "type": "boolean"
+        },
+        "n_trials": {
+          "title": "N Trials",
+          "type": "integer"
+        },
+        "calls_per_trial": {
+          "title": "Calls Per Trial",
+          "type": "integer"
+        },
+        "cpu_time_delta_pct": {
+          "title": "Cpu Time Delta Pct",
+          "type": "number"
+        },
+        "sanity_ok": {
+          "title": "Sanity Ok",
+          "type": "boolean"
+        },
+        "power": {
+          "$ref": "#/$defs/PowerInfo"
+        },
+        "g_saved_per_1m_calls": {
+          "title": "G Saved Per 1M Calls",
+          "type": "number"
+        },
+        "kwh_saved_per_1m_calls": {
+          "title": "Kwh Saved Per 1M Calls",
+          "type": "number"
+        }
+      },
+      "required": [
+        "original",
+        "candidate",
+        "delta_pct",
+        "delta_ci_pct",
+        "p_value",
+        "p_holm",
+        "significant",
+        "n_trials",
+        "calls_per_trial",
+        "cpu_time_delta_pct",
+        "sanity_ok",
+        "power",
+        "g_saved_per_1m_calls",
+        "kwh_saved_per_1m_calls"
+      ],
+      "title": "BenchStats",
+      "type": "object"
+    },
+    "CI": {
+      "additionalProperties": false,
+      "properties": {
+        "lo": {
+          "title": "Lo",
+          "type": "number"
+        },
+        "hi": {
+          "title": "Hi",
+          "type": "number"
+        }
+      },
+      "required": [
+        "lo",
+        "hi"
+      ],
+      "title": "CI",
+      "type": "object"
+    },
+    "Calibration": {
+      "additionalProperties": false,
+      "properties": {
+        "calls_per_trial": {
+          "title": "Calls Per Trial",
+          "type": "integer"
+        },
+        "est_call_s": {
+          "title": "Est Call S",
+          "type": "number"
+        },
+        "n_samples": {
+          "title": "N Samples",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "calls_per_trial",
+        "est_call_s",
+        "n_samples"
+      ],
+      "title": "Calibration",
+      "type": "object"
+    },
+    "CandidateBenchCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "candidate.bench.completed",
+          "default": "candidate.bench.completed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/CandidateBenchCompletedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "CandidateBenchCompleted",
+      "type": "object"
+    },
+    "CandidateBenchCompletedData": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "duration_ms": {
+          "title": "Duration Ms",
+          "type": "integer"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "stats": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchStats"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "ok",
+        "duration_ms",
+        "error",
+        "stats"
+      ],
+      "title": "CandidateBenchCompletedData",
+      "type": "object"
+    },
+    "CandidateBenchQueued": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "candidate.bench.queued",
+          "default": "candidate.bench.queued",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/CandidateBenchQueuedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "CandidateBenchQueued",
+      "type": "object"
+    },
+    "CandidateBenchQueuedData": {
+      "additionalProperties": false,
+      "properties": {
+        "position": {
+          "title": "Position",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "position"
+      ],
+      "title": "CandidateBenchQueuedData",
+      "type": "object"
+    },
+    "CandidateBenchStarted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "candidate.bench.started",
+          "default": "candidate.bench.started",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/CandidateBenchStartedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "CandidateBenchStarted",
+      "type": "object"
+    },
+    "CandidateBenchStartedData": {
+      "additionalProperties": false,
+      "properties": {
+        "calls_per_trial": {
+          "title": "Calls Per Trial",
+          "type": "integer"
+        },
+        "n_trials": {
+          "title": "N Trials",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "calls_per_trial",
+        "n_trials"
+      ],
+      "title": "CandidateBenchStartedData",
+      "type": "object"
+    },
+    "CandidateCheckCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "candidate.check.completed",
+          "default": "candidate.check.completed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/CandidateCheckCompletedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "CandidateCheckCompleted",
+      "type": "object"
+    },
+    "CandidateCheckCompletedData": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "duration_ms": {
+          "title": "Duration Ms",
+          "type": "integer"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "static": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StaticCheck"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tests": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PytestResult"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "differential": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiffCheckResult"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "ok",
+        "duration_ms",
+        "error",
+        "static",
+        "tests",
+        "differential"
+      ],
+      "title": "CandidateCheckCompletedData",
+      "type": "object"
+    },
+    "CandidateCheckStarted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "candidate.check.started",
+          "default": "candidate.check.started",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/NoData",
+          "default": {}
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "CandidateCheckStarted",
+      "type": "object"
+    },
+    "CandidateCode": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "new_imports": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "New Imports",
+          "type": "array"
+        },
+        "strategy": {
+          "title": "Strategy",
+          "type": "string"
+        },
+        "rationale": {
+          "title": "Rationale",
+          "type": "string"
+        },
+        "diff": {
+          "title": "Diff",
+          "type": "string"
+        },
+        "diagnosis": {
+          "default": "",
+          "title": "Diagnosis",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "new_imports",
+        "strategy",
+        "rationale",
+        "diff",
+        "diagnosis"
+      ],
+      "title": "CandidateCode",
+      "type": "object"
+    },
+    "CandidateRejected": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "candidate.rejected",
+          "default": "candidate.rejected",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/CandidateRejectedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "CandidateRejected",
+      "type": "object"
+    },
+    "CandidateRejectedData": {
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "enum": [
+            "syntax",
+            "static_rule",
+            "tests_failed",
+            "differential_mismatch",
+            "timeout",
+            "llm_error",
+            "identical",
+            "bench_failed",
+            "measurement_inconsistent"
+          ],
+          "title": "Reason",
+          "type": "string"
+        },
+        "detail": {
+          "default": "",
+          "title": "Detail",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reason",
+        "detail"
+      ],
+      "title": "CandidateRejectedData",
+      "type": "object"
+    },
+    "CandidateWriteCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "candidate.write.completed",
+          "default": "candidate.write.completed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/CandidateWriteCompletedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "CandidateWriteCompleted",
+      "type": "object"
+    },
+    "CandidateWriteCompletedData": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "duration_ms": {
+          "title": "Duration Ms",
+          "type": "integer"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "candidate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CandidateCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "ok",
+        "duration_ms",
+        "error",
+        "candidate"
+      ],
+      "title": "CandidateWriteCompletedData",
+      "type": "object"
+    },
+    "CandidateWriteStarted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "candidate.write.started",
+          "default": "candidate.write.started",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/CandidateWriteStartedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "CandidateWriteStarted",
+      "type": "object"
+    },
+    "CandidateWriteStartedData": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "write",
+            "repair"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "strategy_hint": {
+          "title": "Strategy Hint",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "strategy_hint"
+      ],
+      "title": "CandidateWriteStartedData",
+      "type": "object"
+    },
+    "Capabilities": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "has_api_key": {
+          "title": "Has Api Key",
+          "type": "boolean"
+        },
+        "modes": {
+          "items": {
+            "enum": [
+              "live",
+              "demo",
+              "record"
+            ],
+            "type": "string"
+          },
+          "title": "Modes",
+          "type": "array"
+        },
+        "active_run": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RunSummary"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "platform": {
+          "title": "Platform",
+          "type": "string"
+        },
+        "python": {
+          "title": "Python",
+          "type": "string"
+        },
+        "tools": {
+          "$ref": "#/$defs/Tools"
+        },
+        "power": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PowerInfo"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "models": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "propertyNames": {
+            "enum": [
+              "triage",
+              "tests",
+              "tests_repair",
+              "rewrite",
+              "rewrite_repair"
+            ]
+          },
+          "title": "Models",
+          "type": "object"
+        },
+        "demo_available": {
+          "title": "Demo Available",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "version",
+        "has_api_key",
+        "modes",
+        "active_run",
+        "platform",
+        "python",
+        "tools",
+        "power",
+        "models",
+        "demo_available"
+      ],
+      "title": "Capabilities",
+      "type": "object"
+    },
+    "CaptureCompletedData": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "duration_ms": {
+          "title": "Duration Ms",
+          "type": "integer"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "n_calls": {
+          "default": 0,
+          "title": "N Calls",
+          "type": "integer"
+        },
+        "n_kept": {
+          "default": 0,
+          "title": "N Kept",
+          "type": "integer"
+        },
+        "n_unpicklable": {
+          "default": 0,
+          "title": "N Unpicklable",
+          "type": "integer"
+        },
+        "mutates_args": {
+          "default": false,
+          "title": "Mutates Args",
+          "type": "boolean"
+        },
+        "raises": {
+          "default": false,
+          "title": "Raises",
+          "type": "boolean"
+        },
+        "deterministic": {
+          "default": true,
+          "title": "Deterministic",
+          "type": "boolean"
+        },
+        "total_bytes": {
+          "default": 0,
+          "title": "Total Bytes",
+          "type": "integer"
+        },
+        "previews": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Previews",
+          "type": "array"
+        }
+      },
+      "required": [
+        "ok",
+        "duration_ms",
+        "error",
+        "n_calls",
+        "n_kept",
+        "n_unpicklable",
+        "mutates_args",
+        "raises",
+        "deterministic",
+        "total_bytes",
+        "previews"
+      ],
+      "title": "CaptureCompletedData",
+      "type": "object"
+    },
+    "CreateRunRequest": {
+      "additionalProperties": false,
+      "description": "Exactly one of ``github_url`` / ``demo``.",
+      "properties": {
+        "github_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Github Url"
+        },
+        "demo": {
+          "default": false,
+          "title": "Demo",
+          "type": "boolean"
+        },
+        "ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref"
+        },
+        "auto_select": {
+          "default": false,
+          "title": "Auto Select",
+          "type": "boolean"
+        }
+      },
+      "title": "CreateRunRequest",
+      "type": "object"
+    },
+    "DecisionRule": {
+      "additionalProperties": false,
+      "properties": {
+        "alpha": {
+          "title": "Alpha",
+          "type": "number"
+        },
+        "min_effect_pct": {
+          "title": "Min Effect Pct",
+          "type": "number"
+        },
+        "correction": {
+          "const": "holm",
+          "default": "holm",
+          "title": "Correction",
+          "type": "string"
+        }
+      },
+      "required": [
+        "alpha",
+        "min_effect_pct",
+        "correction"
+      ],
+      "title": "DecisionRule",
+      "type": "object"
+    },
+    "DiffCheckResult": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "n_samples": {
+          "title": "N Samples",
+          "type": "integer"
+        },
+        "mismatches": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Mismatch"
+          },
+          "title": "Mismatches",
+          "type": "array"
+        },
+        "slowdown_ratio": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Slowdown Ratio"
+        }
+      },
+      "required": [
+        "ok",
+        "n_samples",
+        "mismatches",
+        "slowdown_ratio"
+      ],
+      "title": "DiffCheckResult",
+      "type": "object"
+    },
+    "ErrorInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "timeout",
+            "cancelled",
+            "interrupted",
+            "llm_error",
+            "llm_refusal",
+            "cassette_miss",
+            "sandbox_error",
+            "validation",
+            "clone_error",
+            "env_error",
+            "bench_error",
+            "internal"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail"
+        }
+      },
+      "required": [
+        "kind",
+        "message",
+        "detail"
+      ],
+      "title": "ErrorInfo",
+      "type": "object"
+    },
+    "FunctionBaselineCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "function.baseline.completed",
+          "default": "function.baseline.completed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/BaselineCompletedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "FunctionBaselineCompleted",
+      "type": "object"
+    },
+    "FunctionBaselineStarted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "function.baseline.started",
+          "default": "function.baseline.started",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/NoData",
+          "default": {}
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "FunctionBaselineStarted",
+      "type": "object"
+    },
+    "FunctionCaptureCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "function.capture.completed",
+          "default": "function.capture.completed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/CaptureCompletedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "FunctionCaptureCompleted",
+      "type": "object"
+    },
+    "FunctionCaptureStarted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "function.capture.started",
+          "default": "function.capture.started",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/NoData",
+          "default": {}
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "FunctionCaptureStarted",
+      "type": "object"
+    },
+    "FunctionCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "function.completed",
+          "default": "function.completed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/FunctionCompletedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "FunctionCompleted",
+      "type": "object"
+    },
+    "FunctionCompletedData": {
+      "additionalProperties": false,
+      "properties": {
+        "outcome": {
+          "enum": [
+            "accepted",
+            "no_significant_win",
+            "all_rejected",
+            "reverted",
+            "skipped_untestable",
+            "skipped_capture",
+            "failed",
+            "cancelled"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "winner": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Winner"
+        },
+        "delta_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Delta Pct"
+        },
+        "delta_ci_pct": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CI"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "g_saved_per_1m_calls": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "G Saved Per 1M Calls"
+        },
+        "kwh_saved_per_1m_calls": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kwh Saved Per 1M Calls"
+        },
+        "diff": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Diff"
+        },
+        "reason": {
+          "default": "",
+          "title": "Reason",
+          "type": "string"
+        },
+        "duration_ms": {
+          "title": "Duration Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "outcome",
+        "winner",
+        "delta_pct",
+        "delta_ci_pct",
+        "g_saved_per_1m_calls",
+        "kwh_saved_per_1m_calls",
+        "diff",
+        "reason",
+        "duration_ms"
+      ],
+      "title": "FunctionCompletedData",
+      "type": "object"
+    },
+    "FunctionDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "function.decision",
+          "default": "function.decision",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/FunctionDecisionData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "FunctionDecision",
+      "type": "object"
+    },
+    "FunctionDecisionData": {
+      "additionalProperties": false,
+      "properties": {
+        "outcome": {
+          "enum": [
+            "winner",
+            "no_significant_win",
+            "all_rejected"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "winner": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Winner"
+        },
+        "ranking": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RankingEntry"
+          },
+          "title": "Ranking",
+          "type": "array"
+        },
+        "rule": {
+          "$ref": "#/$defs/DecisionRule"
+        }
+      },
+      "required": [
+        "outcome",
+        "winner",
+        "ranking",
+        "rule"
+      ],
+      "title": "FunctionDecisionData",
+      "type": "object"
+    },
+    "FunctionDiffRef": {
+      "additionalProperties": false,
+      "properties": {
+        "function_id": {
+          "title": "Function Id",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "function_id",
+        "url"
+      ],
+      "title": "FunctionDiffRef",
+      "type": "object"
+    },
+    "FunctionInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "function_id": {
+          "title": "Function Id",
+          "type": "string"
+        },
+        "module": {
+          "title": "Module",
+          "type": "string"
+        },
+        "qualname": {
+          "title": "Qualname",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "function",
+            "method",
+            "staticmethod",
+            "classmethod"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "file": {
+          "title": "File",
+          "type": "string"
+        },
+        "line": {
+          "title": "Line",
+          "type": "integer"
+        },
+        "end_line": {
+          "title": "End Line",
+          "type": "integer"
+        },
+        "loc": {
+          "title": "Loc",
+          "type": "integer"
+        },
+        "import_line": {
+          "title": "Import Line",
+          "type": "string"
+        },
+        "call_hint": {
+          "title": "Call Hint",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "function_id",
+        "module",
+        "qualname",
+        "kind",
+        "file",
+        "line",
+        "end_line",
+        "loc",
+        "import_line",
+        "call_hint",
+        "source"
+      ],
+      "title": "FunctionInfo",
+      "type": "object"
+    },
+    "FunctionMergeCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "function.merge.completed",
+          "default": "function.merge.completed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/MergeCompletedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "FunctionMergeCompleted",
+      "type": "object"
+    },
+    "FunctionMergeStarted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "function.merge.started",
+          "default": "function.merge.started",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/NoData",
+          "default": {}
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "FunctionMergeStarted",
+      "type": "object"
+    },
+    "FunctionRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "function_id": {
+          "title": "Function Id",
+          "type": "string"
+        },
+        "qualname": {
+          "title": "Qualname",
+          "type": "string"
+        },
+        "outcome": {
+          "anyOf": [
+            {
+              "enum": [
+                "accepted",
+                "no_significant_win",
+                "all_rejected",
+                "reverted",
+                "skipped_untestable",
+                "skipped_capture",
+                "failed",
+                "cancelled"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Outcome"
+        },
+        "winner": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Winner"
+        },
+        "delta_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Delta Pct"
+        },
+        "delta_ci_pct": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CI"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "g_saved_per_1m_calls": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "G Saved Per 1M Calls"
+        },
+        "reason": {
+          "default": "",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "function_id",
+        "qualname",
+        "outcome",
+        "winner",
+        "delta_pct",
+        "delta_ci_pct",
+        "g_saved_per_1m_calls",
+        "reason"
+      ],
+      "title": "FunctionRecord",
+      "type": "object"
+    },
+    "FunctionStarted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "function.started",
+          "default": "function.started",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/FunctionStartedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "FunctionStarted",
+      "type": "object"
+    },
+    "FunctionStartedData": {
+      "additionalProperties": false,
+      "properties": {
+        "index": {
+          "title": "Index",
+          "type": "integer"
+        },
+        "total": {
+          "title": "Total",
+          "type": "integer"
+        },
+        "info": {
+          "$ref": "#/$defs/FunctionInfo"
+        }
+      },
+      "required": [
+        "index",
+        "total",
+        "info"
+      ],
+      "title": "FunctionStartedData",
+      "type": "object"
+    },
+    "FunctionTestsRunCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "function.tests.run.completed",
+          "default": "function.tests.run.completed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/TestsRunCompletedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "FunctionTestsRunCompleted",
+      "type": "object"
+    },
+    "FunctionTestsRunStarted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "function.tests.run.started",
+          "default": "function.tests.run.started",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/TestsRunStartedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "FunctionTestsRunStarted",
+      "type": "object"
+    },
+    "FunctionTestsWriteCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "function.tests.write.completed",
+          "default": "function.tests.write.completed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/TestsWriteCompletedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "FunctionTestsWriteCompleted",
+      "type": "object"
+    },
+    "FunctionTestsWriteStarted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "function.tests.write.started",
+          "default": "function.tests.write.started",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/TestsWriteStartedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "FunctionTestsWriteStarted",
+      "type": "object"
+    },
+    "GridInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "country_iso": {
+          "title": "Country Iso",
+          "type": "string"
+        },
+        "kg_per_kwh": {
+          "title": "Kg Per Kwh",
+          "type": "number"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "country_iso",
+        "kg_per_kwh",
+        "source"
+      ],
+      "title": "GridInfo",
+      "type": "object"
+    },
+    "Health": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ok",
+        "version"
+      ],
+      "title": "Health",
+      "type": "object"
+    },
+    "Heartbeat": {
+      "additionalProperties": false,
+      "description": "SSE-only keepalive, sent as ``event: heartbeat`` with no id. Never persisted.",
+      "properties": {
+        "type": {
+          "const": "heartbeat",
+          "default": "heartbeat",
+          "title": "Type",
+          "type": "string"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "last_seq": {
+          "title": "Last Seq",
+          "type": "integer"
+        },
+        "state": {
+          "enum": [
+            "created",
+            "cloning",
+            "installing",
+            "discovering",
+            "triaging",
+            "awaiting_selection",
+            "optimizing",
+            "finalizing",
+            "completed",
+            "failed",
+            "cancelled",
+            "interrupted"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "server_ts": {
+          "title": "Server Ts",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "type",
+        "run_id",
+        "last_seq",
+        "state",
+        "server_ts"
+      ],
+      "title": "Heartbeat",
+      "type": "object"
+    },
+    "ImportProbe": {
+      "additionalProperties": false,
+      "properties": {
+        "ok_modules": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Ok Modules",
+          "type": "array"
+        },
+        "failed": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "title": "Failed",
+          "type": "object"
+        }
+      },
+      "required": [
+        "ok_modules",
+        "failed"
+      ],
+      "title": "ImportProbe",
+      "type": "object"
+    },
+    "Interval": {
+      "additionalProperties": false,
+      "properties": {
+        "mean": {
+          "title": "Mean",
+          "type": "number"
+        },
+        "ci_low": {
+          "title": "Ci Low",
+          "type": "number"
+        },
+        "ci_high": {
+          "title": "Ci High",
+          "type": "number"
+        },
+        "std": {
+          "title": "Std",
+          "type": "number"
+        }
+      },
+      "required": [
+        "mean",
+        "ci_low",
+        "ci_high",
+        "std"
+      ],
+      "title": "Interval",
+      "type": "object"
+    },
+    "LlmUsage": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "llm.usage",
+          "default": "llm.usage",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/LlmUsageData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "LlmUsage",
+      "type": "object"
+    },
+    "LlmUsageData": {
+      "additionalProperties": false,
+      "properties": {
+        "stage": {
+          "enum": [
+            "triage",
+            "tests",
+            "tests_repair",
+            "rewrite",
+            "rewrite_repair"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string"
+        },
+        "cassette": {
+          "enum": [
+            "off",
+            "hit",
+            "recorded",
+            "miss"
+          ],
+          "title": "Cassette",
+          "type": "string"
+        },
+        "input_tokens": {
+          "default": 0,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "default": 0,
+          "title": "Output Tokens",
+          "type": "integer"
+        },
+        "cache_creation_input_tokens": {
+          "default": 0,
+          "title": "Cache Creation Input Tokens",
+          "type": "integer"
+        },
+        "cache_read_input_tokens": {
+          "default": 0,
+          "title": "Cache Read Input Tokens",
+          "type": "integer"
+        },
+        "cost_usd": {
+          "default": 0.0,
+          "title": "Cost Usd",
+          "type": "number"
+        },
+        "run_cost_usd": {
+          "default": 0.0,
+          "title": "Run Cost Usd",
+          "type": "number"
+        },
+        "latency_ms": {
+          "default": 0,
+          "title": "Latency Ms",
+          "type": "integer"
+        },
+        "stop_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stop Reason"
+        }
+      },
+      "required": [
+        "stage",
+        "model",
+        "cassette",
+        "input_tokens",
+        "output_tokens",
+        "cache_creation_input_tokens",
+        "cache_read_input_tokens",
+        "cost_usd",
+        "run_cost_usd",
+        "latency_ms",
+        "stop_reason"
+      ],
+      "title": "LlmUsageData",
+      "type": "object"
+    },
+    "Log": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "log",
+          "default": "log",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/LogData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "Log",
+      "type": "object"
+    },
+    "LogData": {
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "enum": [
+            "debug",
+            "info",
+            "warn",
+            "error"
+          ],
+          "title": "Level",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "clone",
+            "env",
+            "pytest",
+            "bench",
+            "llm",
+            "orchestrator",
+            "sandbox"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "stream": {
+          "anyOf": [
+            {
+              "enum": [
+                "stdout",
+                "stderr"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stream"
+        },
+        "lines": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Lines",
+          "type": "array"
+        },
+        "truncated": {
+          "default": false,
+          "title": "Truncated",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "level",
+        "source",
+        "stream",
+        "lines",
+        "truncated"
+      ],
+      "title": "LogData",
+      "type": "object"
+    },
+    "MeasureStats": {
+      "additionalProperties": false,
+      "description": "Per-call measurements for one arm (original or candidate) of a bench.",
+      "properties": {
+        "g_per_call": {
+          "$ref": "#/$defs/Interval"
+        },
+        "kwh_per_call": {
+          "$ref": "#/$defs/Interval"
+        },
+        "kwh_cpu_per_call": {
+          "title": "Kwh Cpu Per Call",
+          "type": "number"
+        },
+        "kwh_ram_per_call": {
+          "title": "Kwh Ram Per Call",
+          "type": "number"
+        },
+        "cpu_s_per_call": {
+          "$ref": "#/$defs/Interval"
+        },
+        "wall_s_per_call": {
+          "$ref": "#/$defs/Interval"
+        },
+        "n_trials": {
+          "title": "N Trials",
+          "type": "integer"
+        },
+        "calls_per_trial": {
+          "title": "Calls Per Trial",
+          "type": "integer"
+        },
+        "trials_g": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Trials G",
+          "type": "array"
+        }
+      },
+      "required": [
+        "g_per_call",
+        "kwh_per_call",
+        "kwh_cpu_per_call",
+        "kwh_ram_per_call",
+        "cpu_s_per_call",
+        "wall_s_per_call",
+        "n_trials",
+        "calls_per_trial",
+        "trials_g"
+      ],
+      "title": "MeasureStats",
+      "type": "object"
+    },
+    "MergeCompletedData": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "duration_ms": {
+          "title": "Duration Ms",
+          "type": "integer"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "reverted": {
+          "default": false,
+          "title": "Reverted",
+          "type": "boolean"
+        },
+        "suite": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PytestResult"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "differential": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiffCheckResult"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "commit_sha": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Commit Sha"
+        },
+        "diff": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Diff"
+        }
+      },
+      "required": [
+        "ok",
+        "duration_ms",
+        "error",
+        "reverted",
+        "suite",
+        "differential",
+        "commit_sha",
+        "diff"
+      ],
+      "title": "MergeCompletedData",
+      "type": "object"
+    },
+    "Mismatch": {
+      "additionalProperties": false,
+      "properties": {
+        "sample_idx": {
+          "title": "Sample Idx",
+          "type": "integer"
+        },
+        "kind": {
+          "enum": [
+            "return",
+            "exception",
+            "mutation",
+            "slowdown"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "path": {
+          "default": "",
+          "title": "Path",
+          "type": "string"
+        },
+        "expected": {
+          "default": "",
+          "title": "Expected",
+          "type": "string"
+        },
+        "actual": {
+          "default": "",
+          "title": "Actual",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sample_idx",
+        "kind",
+        "path",
+        "expected",
+        "actual"
+      ],
+      "title": "Mismatch",
+      "type": "object"
+    },
+    "NoData": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "NoData",
+      "type": "object"
+    },
+    "OpenStep": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        }
+      },
+      "required": [
+        "type",
+        "function_id",
+        "candidate_id",
+        "attempt"
+      ],
+      "title": "OpenStep",
+      "type": "object"
+    },
+    "PackageInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "title": "PackageInfo",
+      "type": "object"
+    },
+    "PatchRef": {
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "bytes": {
+          "title": "Bytes",
+          "type": "integer"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        },
+        "files_changed": {
+          "title": "Files Changed",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "url",
+        "bytes",
+        "sha256",
+        "files_changed"
+      ],
+      "title": "PatchRef",
+      "type": "object"
+    },
+    "PowerInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "power_source": {
+          "enum": [
+            "rapl",
+            "powermetrics",
+            "tdp_estimate"
+          ],
+          "title": "Power Source",
+          "type": "string"
+        },
+        "badge": {
+          "enum": [
+            "measured",
+            "calibrated",
+            "estimated"
+          ],
+          "title": "Badge",
+          "type": "string"
+        },
+        "method": {
+          "enum": [
+            "codecarbon_task",
+            "codecarbon_model"
+          ],
+          "title": "Method",
+          "type": "string"
+        },
+        "cpu_model": {
+          "title": "Cpu Model",
+          "type": "string"
+        },
+        "tdp_w": {
+          "title": "Tdp W",
+          "type": "number"
+        },
+        "cpu_count": {
+          "title": "Cpu Count",
+          "type": "integer"
+        },
+        "p_core_w": {
+          "title": "P Core W",
+          "type": "number"
+        },
+        "p_ram_w": {
+          "title": "P Ram W",
+          "type": "number"
+        },
+        "grid": {
+          "$ref": "#/$defs/GridInfo"
+        },
+        "notes": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Notes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "power_source",
+        "badge",
+        "method",
+        "cpu_model",
+        "tdp_w",
+        "cpu_count",
+        "p_core_w",
+        "p_ram_w",
+        "grid",
+        "notes"
+      ],
+      "title": "PowerInfo",
+      "type": "object"
+    },
+    "PytestFailure": {
+      "additionalProperties": false,
+      "properties": {
+        "nodeid": {
+          "title": "Nodeid",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "tb_tail": {
+          "default": "",
+          "title": "Tb Tail",
+          "type": "string"
+        }
+      },
+      "required": [
+        "nodeid",
+        "message",
+        "tb_tail"
+      ],
+      "title": "PytestFailure",
+      "type": "object"
+    },
+    "PytestResult": {
+      "additionalProperties": false,
+      "properties": {
+        "exit_code": {
+          "title": "Exit Code",
+          "type": "integer"
+        },
+        "passed": {
+          "title": "Passed",
+          "type": "integer"
+        },
+        "failed": {
+          "title": "Failed",
+          "type": "integer"
+        },
+        "errors": {
+          "title": "Errors",
+          "type": "integer"
+        },
+        "skipped": {
+          "title": "Skipped",
+          "type": "integer"
+        },
+        "duration_s": {
+          "title": "Duration S",
+          "type": "number"
+        },
+        "failures": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/PytestFailure"
+          },
+          "title": "Failures",
+          "type": "array"
+        },
+        "output_tail": {
+          "default": "",
+          "title": "Output Tail",
+          "type": "string"
+        }
+      },
+      "required": [
+        "exit_code",
+        "passed",
+        "failed",
+        "errors",
+        "skipped",
+        "duration_s",
+        "failures",
+        "output_tail"
+      ],
+      "title": "PytestResult",
+      "type": "object"
+    },
+    "RankingEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_id": {
+          "enum": [
+            "A",
+            "B",
+            "C"
+          ],
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "eligible",
+            "rejected"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "delta_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Delta Pct"
+        },
+        "delta_ci_pct": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CI"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "p_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "P Value"
+        },
+        "p_holm": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "P Holm"
+        },
+        "significant": {
+          "default": false,
+          "title": "Significant",
+          "type": "boolean"
+        },
+        "reason": {
+          "default": "",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "candidate_id",
+        "status",
+        "delta_pct",
+        "delta_ci_pct",
+        "p_value",
+        "p_holm",
+        "significant",
+        "reason"
+      ],
+      "title": "RankingEntry",
+      "type": "object"
+    },
+    "ReplayRef": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "src": {
+          "title": "Src",
+          "type": "string"
+        },
+        "functions": {
+          "default": 0,
+          "title": "Functions",
+          "type": "integer"
+        },
+        "duration_ms": {
+          "default": 0,
+          "title": "Duration Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "src",
+        "functions",
+        "duration_ms"
+      ],
+      "title": "ReplayRef",
+      "type": "object"
+    },
+    "RunArtifactsCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.artifacts.completed",
+          "default": "run.artifacts.completed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/RunArtifactsCompletedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunArtifactsCompleted",
+      "type": "object"
+    },
+    "RunArtifactsCompletedData": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "duration_ms": {
+          "title": "Duration Ms",
+          "type": "integer"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "patch": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PatchRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "zip": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArtifactRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "function_diffs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/FunctionDiffRef"
+          },
+          "title": "Function Diffs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "ok",
+        "duration_ms",
+        "error",
+        "patch",
+        "zip",
+        "function_diffs"
+      ],
+      "title": "RunArtifactsCompletedData",
+      "type": "object"
+    },
+    "RunArtifactsStarted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.artifacts.started",
+          "default": "run.artifacts.started",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/NoData",
+          "default": {}
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunArtifactsStarted",
+      "type": "object"
+    },
+    "RunCancelled": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.cancelled",
+          "default": "run.cancelled",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/RunCancelledData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunCancelled",
+      "type": "object"
+    },
+    "RunCancelledData": {
+      "additionalProperties": false,
+      "properties": {
+        "at_state": {
+          "enum": [
+            "created",
+            "cloning",
+            "installing",
+            "discovering",
+            "triaging",
+            "awaiting_selection",
+            "optimizing",
+            "finalizing",
+            "completed",
+            "failed",
+            "cancelled",
+            "interrupted"
+          ],
+          "title": "At State",
+          "type": "string"
+        },
+        "reason": {
+          "const": "user",
+          "default": "user",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "at_state",
+        "reason"
+      ],
+      "title": "RunCancelledData",
+      "type": "object"
+    },
+    "RunCloneCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.clone.completed",
+          "default": "run.clone.completed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/RunCloneCompletedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunCloneCompleted",
+      "type": "object"
+    },
+    "RunCloneCompletedData": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "duration_ms": {
+          "title": "Duration Ms",
+          "type": "integer"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "commit_sha": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Commit Sha"
+        },
+        "n_files": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "N Files"
+        },
+        "n_py_files": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "N Py Files"
+        },
+        "size_bytes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Size Bytes"
+        }
+      },
+      "required": [
+        "ok",
+        "duration_ms",
+        "error",
+        "commit_sha",
+        "n_files",
+        "n_py_files",
+        "size_bytes"
+      ],
+      "title": "RunCloneCompletedData",
+      "type": "object"
+    },
+    "RunCloneStarted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.clone.started",
+          "default": "run.clone.started",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/RunCloneStartedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunCloneStarted",
+      "type": "object"
+    },
+    "RunCloneStartedData": {
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Url"
+        },
+        "ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref"
+        }
+      },
+      "required": [
+        "url",
+        "ref"
+      ],
+      "title": "RunCloneStartedData",
+      "type": "object"
+    },
+    "RunCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.completed",
+          "default": "run.completed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/RunCompletedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunCompleted",
+      "type": "object"
+    },
+    "RunCompletedData": {
+      "additionalProperties": false,
+      "properties": {
+        "summary": {
+          "$ref": "#/$defs/RunTotals"
+        }
+      },
+      "required": [
+        "summary"
+      ],
+      "title": "RunCompletedData",
+      "type": "object"
+    },
+    "RunCreated": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.created",
+          "default": "run.created",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/RunCreatedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunCreated",
+      "type": "object"
+    },
+    "RunCreatedData": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "netzero_version": {
+          "title": "Netzero Version",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "live",
+            "demo",
+            "record"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/RunSource"
+        },
+        "models": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "propertyNames": {
+            "enum": [
+              "triage",
+              "tests",
+              "tests_repair",
+              "rewrite",
+              "rewrite_repair"
+            ]
+          },
+          "title": "Models",
+          "type": "object"
+        },
+        "settings": {
+          "$ref": "#/$defs/RunSettings"
+        },
+        "assumptions": {
+          "$ref": "#/$defs/Assumptions"
+        }
+      },
+      "required": [
+        "schema_version",
+        "netzero_version",
+        "mode",
+        "source",
+        "models",
+        "settings",
+        "assumptions"
+      ],
+      "title": "RunCreatedData",
+      "type": "object"
+    },
+    "RunDetail": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "created_ts": {
+          "title": "Created Ts",
+          "type": "integer"
+        },
+        "updated_ts": {
+          "title": "Updated Ts",
+          "type": "integer"
+        },
+        "state": {
+          "enum": [
+            "created",
+            "cloning",
+            "installing",
+            "discovering",
+            "triaging",
+            "awaiting_selection",
+            "optimizing",
+            "finalizing",
+            "completed",
+            "failed",
+            "cancelled",
+            "interrupted"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/RunSource"
+        },
+        "mode": {
+          "enum": [
+            "live",
+            "demo",
+            "record"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "functions_total": {
+          "default": 0,
+          "title": "Functions Total",
+          "type": "integer"
+        },
+        "functions_done": {
+          "default": 0,
+          "title": "Functions Done",
+          "type": "integer"
+        },
+        "counts_by_outcome": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "default": {},
+          "propertyNames": {
+            "enum": [
+              "accepted",
+              "no_significant_win",
+              "all_rejected",
+              "reverted",
+              "skipped_untestable",
+              "skipped_capture",
+              "failed",
+              "cancelled"
+            ]
+          },
+          "title": "Counts By Outcome",
+          "type": "object"
+        },
+        "mean_reduction_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mean Reduction Pct"
+        },
+        "g_saved_per_1m_calls": {
+          "default": 0.0,
+          "title": "G Saved Per 1M Calls",
+          "type": "number"
+        },
+        "last_seq": {
+          "default": 0,
+          "title": "Last Seq",
+          "type": "integer"
+        },
+        "models": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "propertyNames": {
+            "enum": [
+              "triage",
+              "tests",
+              "tests_repair",
+              "rewrite",
+              "rewrite_repair"
+            ]
+          },
+          "title": "Models",
+          "type": "object"
+        },
+        "settings": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RunSettings"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "assumptions": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Assumptions"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "power": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PowerInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "triage": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/TriageItem"
+          },
+          "title": "Triage",
+          "type": "array"
+        },
+        "selection": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Selection"
+        },
+        "functions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/FunctionRecord"
+          },
+          "title": "Functions",
+          "type": "array"
+        },
+        "artifacts": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RunArtifactsCompletedData"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "llm_cost_usd": {
+          "default": 0.0,
+          "title": "Llm Cost Usd",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "created_ts",
+        "updated_ts",
+        "state",
+        "source",
+        "mode",
+        "functions_total",
+        "functions_done",
+        "counts_by_outcome",
+        "mean_reduction_pct",
+        "g_saved_per_1m_calls",
+        "last_seq",
+        "models",
+        "settings",
+        "assumptions",
+        "power",
+        "triage",
+        "selection",
+        "functions",
+        "artifacts",
+        "error",
+        "llm_cost_usd"
+      ],
+      "title": "RunDetail",
+      "type": "object"
+    },
+    "RunDiscoveryCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.discovery.completed",
+          "default": "run.discovery.completed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/RunDiscoveryCompletedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunDiscoveryCompleted",
+      "type": "object"
+    },
+    "RunDiscoveryCompletedData": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "duration_ms": {
+          "title": "Duration Ms",
+          "type": "integer"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "n_files": {
+          "default": 0,
+          "title": "N Files",
+          "type": "integer"
+        },
+        "n_functions": {
+          "default": 0,
+          "title": "N Functions",
+          "type": "integer"
+        },
+        "n_test_files": {
+          "default": 0,
+          "title": "N Test Files",
+          "type": "integer"
+        },
+        "import_roots": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Import Roots",
+          "type": "array"
+        },
+        "heuristic_ranked": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/TriageItem"
+          },
+          "title": "Heuristic Ranked",
+          "type": "array"
+        }
+      },
+      "required": [
+        "ok",
+        "duration_ms",
+        "error",
+        "n_files",
+        "n_functions",
+        "n_test_files",
+        "import_roots",
+        "heuristic_ranked"
+      ],
+      "title": "RunDiscoveryCompletedData",
+      "type": "object"
+    },
+    "RunDiscoveryStarted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.discovery.started",
+          "default": "run.discovery.started",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/NoData",
+          "default": {}
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunDiscoveryStarted",
+      "type": "object"
+    },
+    "RunEnvCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.env.completed",
+          "default": "run.env.completed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/RunEnvCompletedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunEnvCompleted",
+      "type": "object"
+    },
+    "RunEnvCompletedData": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "duration_ms": {
+          "title": "Duration Ms",
+          "type": "integer"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "python_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Python Version"
+        },
+        "packages": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/PackageInfo"
+          },
+          "title": "Packages",
+          "type": "array"
+        },
+        "import_probe": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ImportProbe"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "ok",
+        "duration_ms",
+        "error",
+        "python_version",
+        "packages",
+        "import_probe"
+      ],
+      "title": "RunEnvCompletedData",
+      "type": "object"
+    },
+    "RunEnvStarted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.env.started",
+          "default": "run.env.started",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/RunEnvStartedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunEnvStarted",
+      "type": "object"
+    },
+    "RunEnvStartedData": {
+      "additionalProperties": false,
+      "properties": {
+        "python_request": {
+          "title": "Python Request",
+          "type": "string"
+        },
+        "dependency_sources": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Dependency Sources",
+          "type": "array"
+        }
+      },
+      "required": [
+        "python_request",
+        "dependency_sources"
+      ],
+      "title": "RunEnvStartedData",
+      "type": "object"
+    },
+    "RunFailed": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.failed",
+          "default": "run.failed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/RunFailedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunFailed",
+      "type": "object"
+    },
+    "RunFailedData": {
+      "additionalProperties": false,
+      "properties": {
+        "stage": {
+          "enum": [
+            "created",
+            "cloning",
+            "installing",
+            "discovering",
+            "triaging",
+            "awaiting_selection",
+            "optimizing",
+            "finalizing",
+            "completed",
+            "failed",
+            "cancelled",
+            "interrupted"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/$defs/ErrorInfo"
+        }
+      },
+      "required": [
+        "stage",
+        "error"
+      ],
+      "title": "RunFailedData",
+      "type": "object"
+    },
+    "RunInterrupted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.interrupted",
+          "default": "run.interrupted",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/RunInterruptedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunInterrupted",
+      "type": "object"
+    },
+    "RunInterruptedData": {
+      "additionalProperties": false,
+      "properties": {
+        "previous_state": {
+          "enum": [
+            "created",
+            "cloning",
+            "installing",
+            "discovering",
+            "triaging",
+            "awaiting_selection",
+            "optimizing",
+            "finalizing",
+            "completed",
+            "failed",
+            "cancelled",
+            "interrupted"
+          ],
+          "title": "Previous State",
+          "type": "string"
+        },
+        "open_steps": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/OpenStep"
+          },
+          "title": "Open Steps",
+          "type": "array"
+        }
+      },
+      "required": [
+        "previous_state",
+        "open_steps"
+      ],
+      "title": "RunInterruptedData",
+      "type": "object"
+    },
+    "RunPowerCalibrationCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.power.calibration.completed",
+          "default": "run.power.calibration.completed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/RunPowerCalibrationCompletedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunPowerCalibrationCompleted",
+      "type": "object"
+    },
+    "RunPowerCalibrationCompletedData": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "duration_ms": {
+          "title": "Duration Ms",
+          "type": "integer"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "p_idle_w": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "P Idle W"
+        },
+        "p_busy_w": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "P Busy W"
+        },
+        "p_core_w": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "P Core W"
+        },
+        "cached": {
+          "default": false,
+          "title": "Cached",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "ok",
+        "duration_ms",
+        "error",
+        "p_idle_w",
+        "p_busy_w",
+        "p_core_w",
+        "cached"
+      ],
+      "title": "RunPowerCalibrationCompletedData",
+      "type": "object"
+    },
+    "RunPowerCalibrationStarted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.power.calibration.started",
+          "default": "run.power.calibration.started",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/NoData",
+          "default": {}
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunPowerCalibrationStarted",
+      "type": "object"
+    },
+    "RunPowerDetected": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.power.detected",
+          "default": "run.power.detected",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/RunPowerDetectedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunPowerDetected",
+      "type": "object"
+    },
+    "RunPowerDetectedData": {
+      "additionalProperties": false,
+      "properties": {
+        "power": {
+          "$ref": "#/$defs/PowerInfo"
+        }
+      },
+      "required": [
+        "power"
+      ],
+      "title": "RunPowerDetectedData",
+      "type": "object"
+    },
+    "RunSelectionConfirmed": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.selection.confirmed",
+          "default": "run.selection.confirmed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/RunSelectionConfirmedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunSelectionConfirmed",
+      "type": "object"
+    },
+    "RunSelectionConfirmedData": {
+      "additionalProperties": false,
+      "properties": {
+        "function_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Function Ids",
+          "type": "array"
+        },
+        "auto": {
+          "default": false,
+          "title": "Auto",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "function_ids",
+        "auto"
+      ],
+      "title": "RunSelectionConfirmedData",
+      "type": "object"
+    },
+    "RunSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "max_functions": {
+          "title": "Max Functions",
+          "type": "integer"
+        },
+        "preselect": {
+          "title": "Preselect",
+          "type": "integer"
+        },
+        "n_trials": {
+          "title": "N Trials",
+          "type": "integer"
+        },
+        "trial_target_s": {
+          "title": "Trial Target S",
+          "type": "number"
+        },
+        "alpha": {
+          "title": "Alpha",
+          "type": "number"
+        },
+        "min_effect_pct": {
+          "title": "Min Effect Pct",
+          "type": "number"
+        },
+        "candidates": {
+          "items": {
+            "enum": [
+              "A",
+              "B",
+              "C"
+            ],
+            "type": "string"
+          },
+          "title": "Candidates",
+          "type": "array"
+        },
+        "country_iso": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Country Iso"
+        }
+      },
+      "required": [
+        "max_functions",
+        "preselect",
+        "n_trials",
+        "trial_target_s",
+        "alpha",
+        "min_effect_pct",
+        "candidates",
+        "country_iso"
+      ],
+      "title": "RunSettings",
+      "type": "object"
+    },
+    "RunSource": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "github",
+            "demo"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref"
+        }
+      },
+      "required": [
+        "kind",
+        "url",
+        "ref"
+      ],
+      "title": "RunSource",
+      "type": "object"
+    },
+    "RunStateChanged": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.state_changed",
+          "default": "run.state_changed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/RunStateChangedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunStateChanged",
+      "type": "object"
+    },
+    "RunStateChangedData": {
+      "additionalProperties": false,
+      "properties": {
+        "from_state": {
+          "anyOf": [
+            {
+              "enum": [
+                "created",
+                "cloning",
+                "installing",
+                "discovering",
+                "triaging",
+                "awaiting_selection",
+                "optimizing",
+                "finalizing",
+                "completed",
+                "failed",
+                "cancelled",
+                "interrupted"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "From State"
+        },
+        "to_state": {
+          "enum": [
+            "created",
+            "cloning",
+            "installing",
+            "discovering",
+            "triaging",
+            "awaiting_selection",
+            "optimizing",
+            "finalizing",
+            "completed",
+            "failed",
+            "cancelled",
+            "interrupted"
+          ],
+          "title": "To State",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "from_state",
+        "to_state",
+        "reason"
+      ],
+      "title": "RunStateChangedData",
+      "type": "object"
+    },
+    "RunSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "created_ts": {
+          "title": "Created Ts",
+          "type": "integer"
+        },
+        "updated_ts": {
+          "title": "Updated Ts",
+          "type": "integer"
+        },
+        "state": {
+          "enum": [
+            "created",
+            "cloning",
+            "installing",
+            "discovering",
+            "triaging",
+            "awaiting_selection",
+            "optimizing",
+            "finalizing",
+            "completed",
+            "failed",
+            "cancelled",
+            "interrupted"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/RunSource"
+        },
+        "mode": {
+          "enum": [
+            "live",
+            "demo",
+            "record"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "functions_total": {
+          "default": 0,
+          "title": "Functions Total",
+          "type": "integer"
+        },
+        "functions_done": {
+          "default": 0,
+          "title": "Functions Done",
+          "type": "integer"
+        },
+        "counts_by_outcome": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "default": {},
+          "propertyNames": {
+            "enum": [
+              "accepted",
+              "no_significant_win",
+              "all_rejected",
+              "reverted",
+              "skipped_untestable",
+              "skipped_capture",
+              "failed",
+              "cancelled"
+            ]
+          },
+          "title": "Counts By Outcome",
+          "type": "object"
+        },
+        "mean_reduction_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mean Reduction Pct"
+        },
+        "g_saved_per_1m_calls": {
+          "default": 0.0,
+          "title": "G Saved Per 1M Calls",
+          "type": "number"
+        },
+        "last_seq": {
+          "default": 0,
+          "title": "Last Seq",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "created_ts",
+        "updated_ts",
+        "state",
+        "source",
+        "mode",
+        "functions_total",
+        "functions_done",
+        "counts_by_outcome",
+        "mean_reduction_pct",
+        "g_saved_per_1m_calls",
+        "last_seq"
+      ],
+      "title": "RunSummary",
+      "type": "object"
+    },
+    "RunTotals": {
+      "additionalProperties": false,
+      "properties": {
+        "functions_total": {
+          "title": "Functions Total",
+          "type": "integer"
+        },
+        "functions_done": {
+          "title": "Functions Done",
+          "type": "integer"
+        },
+        "counts_by_outcome": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "propertyNames": {
+            "enum": [
+              "accepted",
+              "no_significant_win",
+              "all_rejected",
+              "reverted",
+              "skipped_untestable",
+              "skipped_capture",
+              "failed",
+              "cancelled"
+            ]
+          },
+          "title": "Counts By Outcome",
+          "type": "object"
+        },
+        "mean_reduction_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mean Reduction Pct"
+        },
+        "g_saved_per_1m_calls": {
+          "title": "G Saved Per 1M Calls",
+          "type": "number"
+        },
+        "kwh_saved_per_1m_calls": {
+          "title": "Kwh Saved Per 1M Calls",
+          "type": "number"
+        },
+        "llm_cost_usd": {
+          "title": "Llm Cost Usd",
+          "type": "number"
+        },
+        "duration_ms": {
+          "title": "Duration Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "functions_total",
+        "functions_done",
+        "counts_by_outcome",
+        "mean_reduction_pct",
+        "g_saved_per_1m_calls",
+        "kwh_saved_per_1m_calls",
+        "llm_cost_usd",
+        "duration_ms"
+      ],
+      "title": "RunTotals",
+      "type": "object"
+    },
+    "RunTriageCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.triage.completed",
+          "default": "run.triage.completed",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/RunTriageCompletedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunTriageCompleted",
+      "type": "object"
+    },
+    "RunTriageCompletedData": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "duration_ms": {
+          "title": "Duration Ms",
+          "type": "integer"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "items": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/TriageItem"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "preselected": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Preselected",
+          "type": "array"
+        },
+        "llm_used": {
+          "default": false,
+          "title": "Llm Used",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "ok",
+        "duration_ms",
+        "error",
+        "items",
+        "preselected",
+        "llm_used"
+      ],
+      "title": "RunTriageCompletedData",
+      "type": "object"
+    },
+    "RunTriageStarted": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "attempt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt"
+        },
+        "type": {
+          "const": "run.triage.started",
+          "default": "run.triage.started",
+          "title": "Type",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/RunTriageStartedData"
+        }
+      },
+      "required": [
+        "seq",
+        "ts",
+        "run_id",
+        "function_id",
+        "candidate_id",
+        "attempt",
+        "type",
+        "data"
+      ],
+      "title": "RunTriageStarted",
+      "type": "object"
+    },
+    "RunTriageStartedData": {
+      "additionalProperties": false,
+      "properties": {
+        "n_candidates": {
+          "title": "N Candidates",
+          "type": "integer"
+        },
+        "llm": {
+          "title": "Llm",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "n_candidates",
+        "llm"
+      ],
+      "title": "RunTriageStartedData",
+      "type": "object"
+    },
+    "SelectRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "function_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Function Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "function_ids"
+      ],
+      "title": "SelectRequest",
+      "type": "object"
+    },
+    "StaticCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "problems": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Problems",
+          "type": "array"
+        }
+      },
+      "required": [
+        "ok",
+        "problems"
+      ],
+      "title": "StaticCheck",
+      "type": "object"
+    },
+    "TestFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "test_names": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Test Names",
+          "type": "array"
+        },
+        "workload_test": {
+          "title": "Workload Test",
+          "type": "string"
+        },
+        "notes": {
+          "default": "",
+          "title": "Notes",
+          "type": "string"
+        },
+        "diagnosis": {
+          "default": "",
+          "title": "Diagnosis",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "code",
+        "test_names",
+        "workload_test",
+        "notes",
+        "diagnosis"
+      ],
+      "title": "TestFile",
+      "type": "object"
+    },
+    "TestsRunCompletedData": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "duration_ms": {
+          "title": "Duration Ms",
+          "type": "integer"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "result": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PytestResult"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "flaky": {
+          "default": false,
+          "title": "Flaky",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "ok",
+        "duration_ms",
+        "error",
+        "result",
+        "flaky"
+      ],
+      "title": "TestsRunCompletedData",
+      "type": "object"
+    },
+    "TestsRunStartedData": {
+      "additionalProperties": false,
+      "properties": {
+        "target": {
+          "const": "original",
+          "default": "original",
+          "title": "Target",
+          "type": "string"
+        },
+        "repeat": {
+          "default": 0,
+          "title": "Repeat",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "target",
+        "repeat"
+      ],
+      "title": "TestsRunStartedData",
+      "type": "object"
+    },
+    "TestsWriteCompletedData": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "duration_ms": {
+          "title": "Duration Ms",
+          "type": "integer"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "test_file": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TestFile"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "ok",
+        "duration_ms",
+        "error",
+        "test_file"
+      ],
+      "title": "TestsWriteCompletedData",
+      "type": "object"
+    },
+    "TestsWriteStartedData": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "write",
+            "repair"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "failures_in": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Failures In",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "failures_in"
+      ],
+      "title": "TestsWriteStartedData",
+      "type": "object"
+    },
+    "Tools": {
+      "additionalProperties": false,
+      "properties": {
+        "git": {
+          "title": "Git",
+          "type": "boolean"
+        },
+        "uv": {
+          "title": "Uv",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "git",
+        "uv"
+      ],
+      "title": "Tools",
+      "type": "object"
+    },
+    "TriageItem": {
+      "additionalProperties": false,
+      "properties": {
+        "function_id": {
+          "title": "Function Id",
+          "type": "string"
+        },
+        "module": {
+          "title": "Module",
+          "type": "string"
+        },
+        "qualname": {
+          "title": "Qualname",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "function",
+            "method",
+            "staticmethod",
+            "classmethod"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "file": {
+          "title": "File",
+          "type": "string"
+        },
+        "line": {
+          "title": "Line",
+          "type": "integer"
+        },
+        "end_line": {
+          "title": "End Line",
+          "type": "integer"
+        },
+        "loc": {
+          "title": "Loc",
+          "type": "integer"
+        },
+        "import_line": {
+          "title": "Import Line",
+          "type": "string"
+        },
+        "call_hint": {
+          "title": "Call Hint",
+          "type": "string"
+        },
+        "heuristic_score": {
+          "title": "Heuristic Score",
+          "type": "number"
+        },
+        "llm_potential": {
+          "anyOf": [
+            {
+              "enum": [
+                "high",
+                "medium",
+                "low",
+                "none"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Llm Potential"
+        },
+        "llm_testability": {
+          "anyOf": [
+            {
+              "enum": [
+                "high",
+                "medium",
+                "low",
+                "none"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Llm Testability"
+        },
+        "score": {
+          "title": "Score",
+          "type": "number"
+        },
+        "reasons": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        },
+        "skip_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Skip Reason"
+        },
+        "preselected": {
+          "default": false,
+          "title": "Preselected",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "function_id",
+        "module",
+        "qualname",
+        "kind",
+        "file",
+        "line",
+        "end_line",
+        "loc",
+        "import_line",
+        "call_hint",
+        "heuristic_score",
+        "llm_potential",
+        "llm_testability",
+        "score",
+        "reasons",
+        "skip_reason",
+        "preselected"
+      ],
+      "title": "TriageItem",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Single root exported to ``web/src/gen/schema.json``; never sent on the wire.",
+  "properties": {
+    "event": {
+      "discriminator": {
+        "mapping": {
+          "candidate.bench.completed": "#/$defs/CandidateBenchCompleted",
+          "candidate.bench.queued": "#/$defs/CandidateBenchQueued",
+          "candidate.bench.started": "#/$defs/CandidateBenchStarted",
+          "candidate.check.completed": "#/$defs/CandidateCheckCompleted",
+          "candidate.check.started": "#/$defs/CandidateCheckStarted",
+          "candidate.rejected": "#/$defs/CandidateRejected",
+          "candidate.write.completed": "#/$defs/CandidateWriteCompleted",
+          "candidate.write.started": "#/$defs/CandidateWriteStarted",
+          "function.baseline.completed": "#/$defs/FunctionBaselineCompleted",
+          "function.baseline.started": "#/$defs/FunctionBaselineStarted",
+          "function.capture.completed": "#/$defs/FunctionCaptureCompleted",
+          "function.capture.started": "#/$defs/FunctionCaptureStarted",
+          "function.completed": "#/$defs/FunctionCompleted",
+          "function.decision": "#/$defs/FunctionDecision",
+          "function.merge.completed": "#/$defs/FunctionMergeCompleted",
+          "function.merge.started": "#/$defs/FunctionMergeStarted",
+          "function.started": "#/$defs/FunctionStarted",
+          "function.tests.run.completed": "#/$defs/FunctionTestsRunCompleted",
+          "function.tests.run.started": "#/$defs/FunctionTestsRunStarted",
+          "function.tests.write.completed": "#/$defs/FunctionTestsWriteCompleted",
+          "function.tests.write.started": "#/$defs/FunctionTestsWriteStarted",
+          "llm.usage": "#/$defs/LlmUsage",
+          "log": "#/$defs/Log",
+          "run.artifacts.completed": "#/$defs/RunArtifactsCompleted",
+          "run.artifacts.started": "#/$defs/RunArtifactsStarted",
+          "run.cancelled": "#/$defs/RunCancelled",
+          "run.clone.completed": "#/$defs/RunCloneCompleted",
+          "run.clone.started": "#/$defs/RunCloneStarted",
+          "run.completed": "#/$defs/RunCompleted",
+          "run.created": "#/$defs/RunCreated",
+          "run.discovery.completed": "#/$defs/RunDiscoveryCompleted",
+          "run.discovery.started": "#/$defs/RunDiscoveryStarted",
+          "run.env.completed": "#/$defs/RunEnvCompleted",
+          "run.env.started": "#/$defs/RunEnvStarted",
+          "run.failed": "#/$defs/RunFailed",
+          "run.interrupted": "#/$defs/RunInterrupted",
+          "run.power.calibration.completed": "#/$defs/RunPowerCalibrationCompleted",
+          "run.power.calibration.started": "#/$defs/RunPowerCalibrationStarted",
+          "run.power.detected": "#/$defs/RunPowerDetected",
+          "run.selection.confirmed": "#/$defs/RunSelectionConfirmed",
+          "run.state_changed": "#/$defs/RunStateChanged",
+          "run.triage.completed": "#/$defs/RunTriageCompleted",
+          "run.triage.started": "#/$defs/RunTriageStarted"
+        },
+        "propertyName": "type"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/RunCreated"
+        },
+        {
+          "$ref": "#/$defs/RunStateChanged"
+        },
+        {
+          "$ref": "#/$defs/RunPowerDetected"
+        },
+        {
+          "$ref": "#/$defs/RunPowerCalibrationStarted"
+        },
+        {
+          "$ref": "#/$defs/RunPowerCalibrationCompleted"
+        },
+        {
+          "$ref": "#/$defs/RunCloneStarted"
+        },
+        {
+          "$ref": "#/$defs/RunCloneCompleted"
+        },
+        {
+          "$ref": "#/$defs/RunEnvStarted"
+        },
+        {
+          "$ref": "#/$defs/RunEnvCompleted"
+        },
+        {
+          "$ref": "#/$defs/RunDiscoveryStarted"
+        },
+        {
+          "$ref": "#/$defs/RunDiscoveryCompleted"
+        },
+        {
+          "$ref": "#/$defs/RunTriageStarted"
+        },
+        {
+          "$ref": "#/$defs/RunTriageCompleted"
+        },
+        {
+          "$ref": "#/$defs/RunSelectionConfirmed"
+        },
+        {
+          "$ref": "#/$defs/RunArtifactsStarted"
+        },
+        {
+          "$ref": "#/$defs/RunArtifactsCompleted"
+        },
+        {
+          "$ref": "#/$defs/RunCompleted"
+        },
+        {
+          "$ref": "#/$defs/RunFailed"
+        },
+        {
+          "$ref": "#/$defs/RunCancelled"
+        },
+        {
+          "$ref": "#/$defs/RunInterrupted"
+        },
+        {
+          "$ref": "#/$defs/FunctionStarted"
+        },
+        {
+          "$ref": "#/$defs/FunctionTestsWriteStarted"
+        },
+        {
+          "$ref": "#/$defs/FunctionTestsWriteCompleted"
+        },
+        {
+          "$ref": "#/$defs/FunctionTestsRunStarted"
+        },
+        {
+          "$ref": "#/$defs/FunctionTestsRunCompleted"
+        },
+        {
+          "$ref": "#/$defs/FunctionCaptureStarted"
+        },
+        {
+          "$ref": "#/$defs/FunctionCaptureCompleted"
+        },
+        {
+          "$ref": "#/$defs/FunctionBaselineStarted"
+        },
+        {
+          "$ref": "#/$defs/FunctionBaselineCompleted"
+        },
+        {
+          "$ref": "#/$defs/FunctionDecision"
+        },
+        {
+          "$ref": "#/$defs/FunctionMergeStarted"
+        },
+        {
+          "$ref": "#/$defs/FunctionMergeCompleted"
+        },
+        {
+          "$ref": "#/$defs/FunctionCompleted"
+        },
+        {
+          "$ref": "#/$defs/CandidateWriteStarted"
+        },
+        {
+          "$ref": "#/$defs/CandidateWriteCompleted"
+        },
+        {
+          "$ref": "#/$defs/CandidateCheckStarted"
+        },
+        {
+          "$ref": "#/$defs/CandidateCheckCompleted"
+        },
+        {
+          "$ref": "#/$defs/CandidateRejected"
+        },
+        {
+          "$ref": "#/$defs/CandidateBenchQueued"
+        },
+        {
+          "$ref": "#/$defs/CandidateBenchStarted"
+        },
+        {
+          "$ref": "#/$defs/CandidateBenchCompleted"
+        },
+        {
+          "$ref": "#/$defs/LlmUsage"
+        },
+        {
+          "$ref": "#/$defs/Log"
+        }
+      ],
+      "title": "Event"
+    },
+    "heartbeat": {
+      "$ref": "#/$defs/Heartbeat"
+    },
+    "run_summary": {
+      "$ref": "#/$defs/RunSummary"
+    },
+    "run_detail": {
+      "$ref": "#/$defs/RunDetail"
+    },
+    "capabilities": {
+      "$ref": "#/$defs/Capabilities"
+    },
+    "health": {
+      "$ref": "#/$defs/Health"
+    },
+    "replay_ref": {
+      "$ref": "#/$defs/ReplayRef"
+    },
+    "api_error": {
+      "$ref": "#/$defs/ApiError"
+    },
+    "create_run_request": {
+      "$ref": "#/$defs/CreateRunRequest"
+    },
+    "select_request": {
+      "$ref": "#/$defs/SelectRequest"
+    }
+  },
+  "required": [
+    "event",
+    "heartbeat",
+    "run_summary",
+    "run_detail",
+    "capabilities",
+    "health",
+    "replay_ref",
+    "api_error",
+    "create_run_request",
+    "select_request"
+  ],
+  "title": "Contract",
+  "type": "object"
+}

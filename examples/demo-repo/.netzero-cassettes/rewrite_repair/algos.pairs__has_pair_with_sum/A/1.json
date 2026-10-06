@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite_repair",
+    "function_id": "algos.pairs:has_pair_with_sum",
+    "candidate": "A",
+    "attempt": 1
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "diagnosis": "Adding x to the set before the lookup let a number pair with itself: target 2 matched 1 + 1 in [3, 8, 1, 4]. Look up first, then add.",
+    "strategy": "Check the complement before adding",
+    "rationale": "Each number is compared only with numbers at earlier positions, so one position is never used twice, while equal numbers at two positions still pair. O(n) instead of O(n²).",
+    "code": "def has_pair_with_sum(numbers: list[int], target: int) -> bool:\n    \"\"\"Tell whether two different positions in ``numbers`` add up to ``target``.\n\n    The same position may not be used twice, but two equal numbers at\n    different positions count as a pair.\n    \"\"\"\n    seen = set()\n    for x in numbers:\n        if target - x in seen:\n            return True\n        seen.add(x)\n    return False\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

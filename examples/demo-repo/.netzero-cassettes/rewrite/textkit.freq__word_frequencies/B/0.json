@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "textkit.freq:word_frequencies",
+    "candidate": "B",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "Single-pass dict.get counting",
+    "rationale": "Counts each word as it is read instead of calling list.count per distinct word, so the work is linear. The filtering, ranking key and returned dict are unchanged.",
+    "code": "def word_frequencies(text: str, *, min_length: int = 1) -> dict[str, int]:\n    \"\"\"Count how often each word occurs in ``text``.\n\n    Words are split on whitespace, stripped of surrounding punctuation and\n    lower-cased; words shorter than ``min_length`` are ignored. The result is\n    ordered by count, highest first, with ties in alphabetical order.\n    \"\"\"\n    punctuation = string.punctuation\n    counts = {}\n    for raw in text.split():\n        word = raw.strip(punctuation).lower()\n        if word and len(word) >= min_length:\n            counts[word] = counts.get(word, 0) + 1\n    ranked = sorted(counts.items(), key=lambda item: (-item[1], item[0]))\n    return dict(ranked)\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

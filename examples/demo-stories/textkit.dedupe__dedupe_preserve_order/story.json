@@ -1,0 +1,25 @@
+{
+  "function_id": "textkit.dedupe:dedupe_preserve_order",
+  "tests_notes": "Empty input, first-occurrence order, input not mutated, case-sensitive default, ignore_case keeps the first spelling; workload: 3000 words, 900 distinct.",
+  "tests_repair": null,
+  "A": {
+    "strategy": "Track seen keys in a set",
+    "rationale": "The membership test on the `seen` list is O(n), so the loop is O(n·k). A set makes each test O(1); the result list and the order it is built in are unchanged.",
+    "new_imports": [],
+    "expect": "win"
+  },
+  "B": {
+    "strategy": "dict.fromkeys / setdefault keeps first occurrences",
+    "rationale": "Dicts keep insertion order and hash their keys. dict.fromkeys dedupes in C; with ignore_case, setdefault keeps the first spelling per lower-cased key. Same output, linear time.",
+    "new_imports": [],
+    "expect": "win"
+  },
+  "C": {
+    "strategy": "Bind append methods to locals",
+    "rationale": "Conservative micro-optimization: hoists the two attribute lookups out of the loop. Behaviour is unchanged; the list scan stays, so any gain is small.",
+    "new_imports": [],
+    "expect": "ns"
+  },
+  "repairs": {},
+  "notes": "Happy path: two real wins (set, dict) and a timid micro-optimization that the bench cannot tell apart from the original."
+}

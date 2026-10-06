@@ -1,14 +1,9 @@
-# Python bytecode
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# Virtual environment
 .venv/
 venv/
-env/
-
-# Packaging
 build/
 dist/
 *.egg-info/
@@ -20,31 +15,18 @@ dist/
 .ruff_cache/
 .coverage
 htmlcov/
-coverage.json
 
-# Generated outputs & test data
-output/
-input/
+# netzero
+runs/
+.netzero-cache/
+emissions.csv
+powermetrics_log.txt
 
-# Input/output repos (keep folders via .gitkeep, ignore contents)
-input-repo/*
-!input-repo/.gitkeep
-output-repo/*
-!output-repo/.gitkeep
-
-# Generated output files in src (keep folders via .gitkeep)
-# Un-ignore the output dirs first (matched by the generic "output/" rule above),
-# then ignore their contents but keep .gitkeep
-!src/optimizer_logic/output/
-src/optimizer_logic/output/*
-!src/optimizer_logic/output/.gitkeep
-!src/spec_logic/output/
-src/spec_logic/output/*
-!src/spec_logic/output/.gitkeep
-
-# Generated files
-*.mmd
-*.json
+# web
+web/node_modules/
+web/dist/
+web/test-results/
+web/playwright-report/
 
 # Environment files
 .env
@@ -59,4 +41,3 @@ src/spec_logic/output/*
 *~
 .DS_Store
 Thumbs.db
-

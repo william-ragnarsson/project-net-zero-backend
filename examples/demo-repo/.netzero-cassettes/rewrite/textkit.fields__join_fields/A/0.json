@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "textkit.fields:join_fields",
+    "candidate": "A",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "One regex scan per field",
+    "rationale": "The original scans each field up to three times with separate substring checks. A compiled character class finds any special character in a single pass, so plain fields are rejected with one call.",
+    "code": "def join_fields(fields: list[str], sep: str = \",\", quote: str = '\"') -> str:\n    \"\"\"Join ``fields`` into one delimited line, quoting the fields that need it.\n\n    A field is wrapped in ``quote`` when it contains the separator, the quote\n    character or a line break, and quote characters inside it are doubled, as\n    in CSV. Other fields are written as they are.\n    \"\"\"\n    needs_quoting = re.compile(\"[\" + re.escape(sep + quote) + \"\\n]\").search\n    doubled = quote + quote\n    return sep.join(\n        [\n            quote + value.replace(quote, doubled) + quote if needs_quoting(value) else value\n            for value in fields\n        ]\n    )\n",
+    "new_imports": [
+      "import re"
+    ]
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

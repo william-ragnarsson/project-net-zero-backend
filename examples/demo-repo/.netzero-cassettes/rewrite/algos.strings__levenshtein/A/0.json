@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "algos.strings:levenshtein",
+    "candidate": "A",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "Two rolling rows, comparisons instead of min",
+    "rationale": "Each cell needs only the previous row, so two lists replace the full table, and two comparisons replace building a list for min() per cell. Same recurrence, same distance.",
+    "code": "def levenshtein(source: str, target: str) -> int:\n    \"\"\"Return the edit distance between ``source`` and ``target``.\n\n    The distance is the smallest number of single-character insertions,\n    deletions and substitutions that turn ``source`` into ``target``.\n    \"\"\"\n    previous = list(range(len(target) + 1))\n    for i, s_char in enumerate(source, 1):\n        current = [i]\n        left = i\n        for j, t_char in enumerate(target):\n            diag = previous[j] + (s_char != t_char)\n            up = previous[j + 1] + 1\n            left = left + 1\n            if up < left:\n                left = up\n            if diag < left:\n                left = diag\n            current.append(left)\n        previous = current\n    return previous[-1]\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

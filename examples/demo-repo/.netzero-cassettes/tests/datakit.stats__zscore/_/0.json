@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "tests",
+    "function_id": "datakit.stats:zscore",
+    "candidate": null,
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "code": "import math\n\nimport pytest\nfrom datakit.stats import zscore\n\n\ndef test_empty_values():\n    assert zscore([]) == []\n\n\ndef test_constant_values_score_zero():\n    assert zscore([2.5, 2.5, 2.5, 2.5]) == [0.0, 0.0, 0.0, 0.0]\n\n\ndef test_three_values():\n    assert zscore([1.0, 2.0, 3.0]) == pytest.approx([-math.sqrt(1.5), 0.0, math.sqrt(1.5)])\n\n\ndef test_scores_have_mean_zero_and_unit_spread():\n    scores = zscore([12.5, 3.0, 7.25, 19.0, 3.0, 8.5])\n    assert sum(scores) == pytest.approx(0.0, abs=1e-12)\n    assert sum(s * s for s in scores) / len(scores) == pytest.approx(1.0)\n\n\ndef test_large_offset_keeps_precision():\n    base = [0.25, 0.5, 0.75, 1.5]\n    shifted = [1e9 + b for b in base]\n    assert zscore(shifted) == pytest.approx(zscore(base))\n\n\n@pytest.mark.nz_workload\ndef test_workload_sensor_readings():\n    values = [((i * 7919) % 10007) / 100 + (i % 13) * 0.25 for i in range(80_000)]\n    scores = zscore(values)\n    assert len(scores) == 80_000\n    assert scores[:3] == pytest.approx(\n        [-1.7829554826819813, 0.9656315482955723, 0.2518431488863714]\n    )\n    assert scores[-1] == pytest.approx(1.3963957544344263)\n    assert sum(scores) == pytest.approx(0.0, abs=1e-6)\n    assert sum(s * s for s in scores) / len(scores) == pytest.approx(1.0)\n",
+    "notes": "Empty and constant input, a hand-checked case, mean and spread properties, precision at a 1e9 offset; workload: 80000 sensor readings."
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite_repair",
+    "function_id": "datakit.rank:top_k_inplace",
+    "candidate": "C",
+    "attempt": 1
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "diagnosis": "The scores list was left in ascending order; the original leaves it sorted highest first. Reverse it after sorting so the caller sees the same order.",
+    "strategy": "Ascending sort, then reverse in place",
+    "rationale": "Sorts ascending, reverses the list in place so it ends highest first like the original, and returns the first k, or nothing when k is zero or less.",
+    "code": "def top_k_inplace(scores: list[float], k: int) -> list[float]:\n    \"\"\"Return the ``k`` largest scores, highest first.\n\n    ``scores`` is sorted in place, highest first, so a caller can keep using\n    the full ranking afterwards. A ``k`` of zero or less gives an empty list.\n    \"\"\"\n    scores.sort()\n    scores.reverse()\n    return scores[:k] if k > 0 else []\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite_repair",
+    "function_id": "algos.primes:primes_below",
+    "candidate": "C",
+    "attempt": 1
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "diagnosis": "Adding lru_cache changes the decorators, which must stay identical; it would also hand every caller the same mutable list. Dropped the cache, kept the sieve.",
+    "strategy": "List-based sieve, no cache",
+    "rationale": "Marks composites in a list of booleans up to isqrt(limit) and collects the unmarked numbers in increasing order: the same primes, in O(n log log n) instead of O(n·π(n)).",
+    "code": "def primes_below(limit: int) -> list[int]:\n    \"\"\"Return every prime number smaller than ``limit``, in increasing order.\"\"\"\n    if limit < 3:\n        return []\n    sieve = [True] * limit\n    sieve[0] = sieve[1] = False\n    for n in range(2, math.isqrt(limit - 1) + 1):\n        if sieve[n]:\n            for multiple in range(n * n, limit, n):\n                sieve[multiple] = False\n    return [n for n, prime in enumerate(sieve) if prime]\n",
+    "new_imports": [
+      "import math"
+    ]
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

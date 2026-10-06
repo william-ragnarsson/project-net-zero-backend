@@ -1,0 +1,28 @@
+{
+  "function_id": "textkit.freq:word_frequencies",
+  "tests_notes": "Counting, punctuation and case, empty text, tie order, hyphenated words; workload: a 4000-word document with 399 distinct words.",
+  "tests_repair": {
+    "diagnosis": "Ties are ordered alphabetically, not by first appearance, and only surrounding punctuation is stripped, so hyphenated words stay whole. Fixed both expectations.",
+    "notes": "Counting, punctuation and case, empty text, alphabetical ties, hyphenated words kept whole, min_length; workload: a 4000-word document."
+  },
+  "A": {
+    "strategy": "collections.Counter in one pass",
+    "rationale": "words.count(word) rescans the whole list for every distinct word, O(n·k). Counter counts in one C-level pass; the same sort key then gives the identical ordered dict.",
+    "new_imports": ["from collections import Counter"],
+    "expect": "win"
+  },
+  "B": {
+    "strategy": "Single-pass dict.get counting",
+    "rationale": "Counts each word as it is read instead of calling list.count per distinct word, so the work is linear. The filtering, ranking key and returned dict are unchanged.",
+    "new_imports": [],
+    "expect": "win"
+  },
+  "C": {
+    "strategy": "List comprehensions for the split pass",
+    "rationale": "Conservative micro-optimization: builds the word list with comprehensions and a local punctuation table. The counting step is untouched, so the result is identical.",
+    "new_imports": [],
+    "expect": "ns"
+  },
+  "repairs": {},
+  "notes": "The tests story: the first test file guesses wrong about tie order and hyphens, fails on the original and is repaired. Then two wins and a no-op."
+}

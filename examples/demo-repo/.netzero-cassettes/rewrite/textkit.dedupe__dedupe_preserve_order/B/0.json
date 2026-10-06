@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "textkit.dedupe:dedupe_preserve_order",
+    "candidate": "B",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "dict.fromkeys / setdefault keeps first occurrences",
+    "rationale": "Dicts keep insertion order and hash their keys. dict.fromkeys dedupes in C; with ignore_case, setdefault keeps the first spelling per lower-cased key. Same output, linear time.",
+    "code": "def dedupe_preserve_order(words: list[str], *, ignore_case: bool = False) -> list[str]:\n    \"\"\"Return ``words`` without repeats, keeping each word's first occurrence.\n\n    With ``ignore_case`` two words that differ only in case count as the same\n    word, and the spelling seen first is the one kept. The input list is not\n    modified.\n    \"\"\"\n    if not ignore_case:\n        return list(dict.fromkeys(words))\n    first = {}\n    for word in words:\n        first.setdefault(word.lower(), word)\n    return list(first.values())\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

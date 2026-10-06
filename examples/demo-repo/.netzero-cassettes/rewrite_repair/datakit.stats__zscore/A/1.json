@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite_repair",
+    "function_id": "datakit.stats:zscore",
+    "candidate": "A",
+    "attempt": 1
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "diagnosis": "test_large_offset_keeps_precision failed: near 1e9 the mean of squares and the squared mean agree to every bit, so their difference cancels and the variance is lost.",
+    "strategy": "Two-pass variance, norm from math.hypot",
+    "rationale": "Keeps the stable two-pass method: deviations from the mean first, then the spread as their Euclidean norm over sqrt(n), computed by math.hypot in one C call.",
+    "code": "def zscore(values: list[float]) -> list[float]:\n    \"\"\"Standardise ``values`` to mean 0 and population standard deviation 1.\n\n    An empty input gives an empty list. When every value is the same the\n    spread is zero, and every score is 0.0.\n    \"\"\"\n    n = len(values)\n    if n == 0:\n        return []\n    mean = sum(values) / n\n    deviations = [v - mean for v in values]\n    spread = math.hypot(*deviations) / math.sqrt(n)\n    if spread == 0:\n        return [0.0] * n\n    scale = 1 / spread\n    return [d * scale for d in deviations]\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

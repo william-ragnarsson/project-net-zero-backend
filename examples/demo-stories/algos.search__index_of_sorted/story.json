@@ -1,0 +1,25 @@
+{
+  "function_id": "algos.search:index_of_sorted",
+  "tests_notes": "Present and absent targets, first occurrence among duplicates, negatives, empty inputs; workload: 20000 lookups in 100000 sorted items.",
+  "tests_repair": null,
+  "A": {
+    "strategy": "First-occurrence dict for O(1) lookups",
+    "rationale": "Each lookup is a binary search, O(log n). Indexing the first position of every value once makes each target a single dict probe, and setting a key only when it is new keeps the first occurrence.",
+    "new_imports": [],
+    "expect": "slower"
+  },
+  "B": {
+    "strategy": "List comprehension with an assignment expression",
+    "rationale": "A comprehension replaces the explicit loop and the repeated append calls; the walrus keeps the bisect result for the bounds and equality checks.",
+    "new_imports": [],
+    "expect": "ns"
+  },
+  "C": {
+    "strategy": "Bind append and bisect to locals",
+    "rationale": "Conservative micro-optimization: local names skip the attribute and global lookups inside the loop. The search and the result are unchanged.",
+    "new_imports": [],
+    "expect": "ns"
+  },
+  "repairs": {},
+  "notes": "An honest no-win story: binary search with bisect is already right here. The dict pays for indexing all 100000 items to answer 20000 lookups; the comprehension and the local bindings are within noise."
+}

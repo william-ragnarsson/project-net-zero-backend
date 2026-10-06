@@ -1,0 +1,25 @@
+{
+  "function_id": "textkit.fields:join_fields",
+  "tests_notes": "Plain fields, separator, quote doubling, line breaks, custom separator and quote, empty input; workload: one 80000-field export line.",
+  "tests_repair": null,
+  "A": {
+    "strategy": "One regex scan per field",
+    "rationale": "The original scans each field up to three times with separate substring checks. A compiled character class finds any special character in a single pass, so plain fields are rejected with one call.",
+    "new_imports": ["import re"],
+    "expect": "slower"
+  },
+  "B": {
+    "strategy": "Generator into str.join, no list",
+    "rationale": "Feeding str.join a generator avoids building the intermediate list of quoted fields, which saves an allocation the size of the input.",
+    "new_imports": [],
+    "expect": "slower"
+  },
+  "C": {
+    "strategy": "f-string assembly of quoted fields",
+    "rationale": "Conservative micro-optimization: an f-string builds the quoted field in one formatting step instead of two concatenations that each create a temporary string.",
+    "new_imports": [],
+    "expect": "ns"
+  },
+  "repairs": {},
+  "notes": "An honest no-win story: the original is already a single list comprehension. The regex call costs more than three substring checks, str.join turns a generator into a list anyway, and the f-string is within noise."
+}

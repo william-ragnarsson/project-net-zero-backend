@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "algos.pairs:has_pair_with_sum",
+    "candidate": "C",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "Hoist len and the complement",
+    "rationale": "Conservative micro-optimization: computes len(numbers) once and target - numbers[i] once per outer step, so the inner loop is a single comparison. Same pairs visited in the same order.",
+    "code": "def has_pair_with_sum(numbers: list[int], target: int) -> bool:\n    \"\"\"Tell whether two different positions in ``numbers`` add up to ``target``.\n\n    The same position may not be used twice, but two equal numbers at\n    different positions count as a pair.\n    \"\"\"\n    n = len(numbers)\n    for i in range(n):\n        need = target - numbers[i]\n        for j in range(i + 1, n):\n            if numbers[j] == need:\n                return True\n    return False\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

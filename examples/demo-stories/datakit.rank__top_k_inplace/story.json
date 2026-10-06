@@ -1,0 +1,47 @@
+{
+  "function_id": "datakit.rank:top_k_inplace",
+  "tests_notes": "Largest first, zero and negative k, k beyond the list, duplicates, empty input; workload: a 100000-score leaderboard, top 10.",
+  "tests_repair": null,
+  "A": {
+    "strategy": "heapq.nlargest instead of a full sort",
+    "rationale": "Only k values are needed, so a bounded heap does O(n log k) work instead of sorting all n scores. The k <= 0 guard is kept and the result is the same descending list.",
+    "new_imports": ["import heapq"],
+    "expect": "differential_mismatch"
+  },
+  "B": {
+    "strategy": "sorted() copy, then slice",
+    "rationale": "Sorting a copy avoids writing back into the caller's list, and slicing the first k gives the same descending result for every k.",
+    "new_imports": [],
+    "expect": "differential_mismatch"
+  },
+  "C": {
+    "strategy": "Ascending sort with a reversed slice",
+    "rationale": "Conservative micro-optimization: the default ascending sort skips the reverse flag, and a negative-step slice reads the top k from the end of the list.",
+    "new_imports": [],
+    "expect": "differential_mismatch"
+  },
+  "repairs": {
+    "A": {
+      "diagnosis": "The differential check shows the caller's scores list is no longer sorted afterwards; the original sorts it in place, highest first, and callers rely on that.",
+      "strategy": "In-place sort, branch-free slice",
+      "rationale": "Sorts the caller's list in place, highest first, as the original does, and clamps k at zero in the slice so a single code path serves every k.",
+      "new_imports": [],
+      "expect": "differential_mismatch"
+    },
+    "B": {
+      "diagnosis": "Sorting a copy left the caller's list unsorted. The in-place descending sort is the function's contract, and list.sort is already the fastest way to provide it.",
+      "strategy": "Keep the original in-place sort",
+      "rationale": "No faster version keeps the contract: every score must end up sorted in the caller's list, and list.sort in C is the cheapest way to do that.",
+      "new_imports": [],
+      "expect": "identical"
+    },
+    "C": {
+      "diagnosis": "The scores list was left in ascending order; the original leaves it sorted highest first. Reverse it after sorting so the caller sees the same order.",
+      "strategy": "Ascending sort, then reverse in place",
+      "rationale": "Sorts ascending, reverses the list in place so it ends highest first like the original, and returns the first k, or nothing when k is zero or less.",
+      "new_imports": [],
+      "expect": "differential_mismatch"
+    }
+  },
+  "notes": "The all-rejected story. The tests check return values only, so every candidate passes them; the differential check catches the side effect. A's repair and C's repair sort the list even when k <= 0, which the original never does. B's repair concedes and returns the original, which the static check rejects as identical."
+}

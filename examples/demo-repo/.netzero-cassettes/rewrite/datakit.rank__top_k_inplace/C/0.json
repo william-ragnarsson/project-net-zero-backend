@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "datakit.rank:top_k_inplace",
+    "candidate": "C",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "Ascending sort with a reversed slice",
+    "rationale": "Conservative micro-optimization: the default ascending sort skips the reverse flag, and a negative-step slice reads the top k from the end of the list.",
+    "code": "def top_k_inplace(scores: list[float], k: int) -> list[float]:\n    \"\"\"Return the ``k`` largest scores, highest first.\n\n    ``scores`` is sorted in place, highest first, so a caller can keep using\n    the full ranking afterwards. A ``k`` of zero or less gives an empty list.\n    \"\"\"\n    if k <= 0:\n        return []\n    scores.sort()\n    return scores[: -k - 1 : -1]\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

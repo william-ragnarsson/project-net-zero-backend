@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "datakit.aggregate:total_by_category",
+    "candidate": "C",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "operator.itemgetter for field access",
+    "rationale": "Conservative micro-optimization: itemgetter is implemented in C, so the repeated row lookups avoid subscript bytecode. The two passes and the result are unchanged.",
+    "code": "def total_by_category(rows: list[dict[str, Any]], *, amount_key: str = \"amount\") -> dict[str, int]:\n    \"\"\"Sum ``row[amount_key]`` per ``row[\"category\"]``.\n\n    Amounts are integers (for example cents). Categories appear in the order\n    they are first seen in ``rows``; an empty input gives an empty dict.\n    \"\"\"\n    get_category = itemgetter(\"category\")\n    get_amount = itemgetter(amount_key)\n    categories = []\n    for row in rows:\n        if get_category(row) not in categories:\n            categories.append(get_category(row))\n    totals = {}\n    for category in categories:\n        totals[category] = sum(get_amount(row) for row in rows if get_category(row) == category)\n    return totals\n",
+    "new_imports": [
+      "from operator import itemgetter"
+    ]
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

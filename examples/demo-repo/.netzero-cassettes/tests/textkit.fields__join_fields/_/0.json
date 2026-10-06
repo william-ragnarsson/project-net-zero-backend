@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "tests",
+    "function_id": "textkit.fields:join_fields",
+    "candidate": null,
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "code": "import pytest\nfrom textkit.fields import join_fields\n\n\ndef test_plain_fields_are_written_as_they_are():\n    assert join_fields([\"2026-10-05\", \"paid\", \"42.50\"]) == \"2026-10-05,paid,42.50\"\n\n\ndef test_field_with_separator_is_quoted():\n    assert join_fields([\"Smith, J.\", \"EUR\"]) == '\"Smith, J.\",EUR'\n\n\ndef test_quote_characters_are_doubled():\n    assert join_fields(['said \"ok\"', \"x\"]) == '\"said \"\"ok\"\"\",x'\n\n\ndef test_line_break_is_quoted():\n    assert join_fields([\"two\\nlines\", \"end\"]) == '\"two\\nlines\",end'\n\n\ndef test_custom_separator_and_quote():\n    assert join_fields([\"a;b\", \"it's\", \"c,d\"], sep=\";\", quote=\"'\") == \"'a;b';'it''s';c,d\"\n\n\ndef test_empty_list_and_empty_fields():\n    assert join_fields([]) == \"\"\n    assert join_fields([\"\", \"x\", \"\"]) == \",x,\"\n\n\n@pytest.mark.nz_workload\ndef test_workload_export_line():\n    vocab = [\n        \"Acme Ltd\",\n        \"Berlin\",\n        \"42.50\",\n        \"EUR\",\n        'said \"ok\"',\n        \"Smith, J.\",\n        \"two\\nlines\",\n        \"2026-10-05\",\n        \"paid\",\n        \"\",\n    ]\n    fields = [vocab[(i * 7) % 10] + str(i % 97) for i in range(80000)]\n    line = join_fields(fields)\n    assert len(line) == 799749\n    assert line.count('\"') == 80000\n    assert line.startswith('Acme Ltd0,2026-10-051,\"said \"\"ok\"\"2\",Berlin3,paid4,\"Smith, J.5\",')\n    assert line.endswith(',69,\"two\\nlines70\",EUR71')\n",
+    "notes": "Plain fields, separator, quote doubling, line breaks, custom separator and quote, empty input; workload: one 80000-field export line."
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

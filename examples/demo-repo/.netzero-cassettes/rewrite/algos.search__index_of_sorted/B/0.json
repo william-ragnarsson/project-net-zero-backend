@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "algos.search:index_of_sorted",
+    "candidate": "B",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "List comprehension with an assignment expression",
+    "rationale": "A comprehension replaces the explicit loop and the repeated append calls; the walrus keeps the bisect result for the bounds and equality checks.",
+    "code": "def index_of_sorted(items: list[int], targets: list[int]) -> list[int]:\n    \"\"\"Find each of ``targets`` in the sorted list ``items`` by binary search.\n\n    Returns, for every target in order, the index of its first occurrence in\n    ``items``, or -1 when it is absent. ``items`` must be sorted ascending.\n    \"\"\"\n    n = len(items)\n    return [\n        i if (i := bisect_left(items, target)) < n and items[i] == target else -1\n        for target in targets\n    ]\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

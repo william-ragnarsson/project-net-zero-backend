@@ -1,0 +1,33 @@
+{
+  "function_id": "algos.strings:levenshtein",
+  "tests_notes": "Identical and empty strings, classic pairs, symmetry, accented characters; workload: two sentence pairs of about 150 characters.",
+  "tests_repair": null,
+  "A": {
+    "strategy": "Two rolling rows, comparisons instead of min",
+    "rationale": "Each cell needs only the previous row, so two lists replace the full table, and two comparisons replace building a list for min() per cell. Same recurrence, same distance.",
+    "new_imports": [],
+    "expect": "win"
+  },
+  "B": {
+    "strategy": "Bind rows locally, inline the minimum",
+    "rationale": "Keeps the table but reads the current and previous rows through locals and takes the minimum with two comparisons, so each cell avoids four double indexings and a list allocation.",
+    "new_imports": [],
+    "expect": "win"
+  },
+  "C": {
+    "strategy": "Zip over the previous row",
+    "rationale": "Iterating zip(target, previous, previous[1:]) yields the diagonal and upper cells directly, so the inner loop does no indexing at all.",
+    "new_imports": [],
+    "expect": "syntax"
+  },
+  "repairs": {
+    "C": {
+      "diagnosis": "The min( call in the inner loop was never closed. Rewrote that line as explicit comparisons, which also saves a min() call per cell.",
+      "strategy": "Zip over the previous row, compare",
+      "rationale": "zip yields each cell's diagonal and upper neighbours without indexing; the minimum of the three edits is taken with two comparisons. Identical recurrence, two rows of memory.",
+      "new_imports": [],
+      "expect": "win"
+    }
+  },
+  "notes": "C first comes back with an unclosed parenthesis (a syntax rejection) and wins after one repair; A and B are both clear wins."
+}

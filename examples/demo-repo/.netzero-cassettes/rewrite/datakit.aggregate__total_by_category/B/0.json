@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "datakit.aggregate:total_by_category",
+    "candidate": "B",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "collections.Counter accumulation",
+    "rationale": "Counter is a dict subclass that defaults missing keys to 0, so each row is one in-place addition. Keys keep first-seen order and the totals are the same integers.",
+    "code": "def total_by_category(rows: list[dict[str, Any]], *, amount_key: str = \"amount\") -> dict[str, int]:\n    \"\"\"Sum ``row[amount_key]`` per ``row[\"category\"]``.\n\n    Amounts are integers (for example cents). Categories appear in the order\n    they are first seen in ``rows``; an empty input gives an empty dict.\n    \"\"\"\n    totals = Counter()\n    for row in rows:\n        totals[row[\"category\"]] += row[amount_key]\n    return totals\n",
+    "new_imports": [
+      "from collections import Counter"
+    ]
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "tests",
+    "function_id": "datakit.aggregate:total_by_category",
+    "candidate": null,
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "code": "import pytest\nfrom datakit.aggregate import total_by_category\n\n\ndef test_empty_rows():\n    assert total_by_category([]) == {}\n\n\ndef test_totals_in_first_seen_order():\n    rows = [\n        {\"category\": \"rent\", \"amount\": 90000},\n        {\"category\": \"food\", \"amount\": 1250},\n        {\"category\": \"rent\", \"amount\": 5000},\n        {\"category\": \"travel\", \"amount\": 300},\n        {\"category\": \"food\", \"amount\": 750},\n    ]\n    result = total_by_category(rows)\n    assert list(result.items()) == [(\"rent\", 95000), (\"food\", 2000), (\"travel\", 300)]\n\n\ndef test_custom_amount_key():\n    rows = [\n        {\"category\": \"a\", \"cents\": 5, \"amount\": 999},\n        {\"category\": \"b\", \"cents\": 7, \"amount\": 999},\n        {\"category\": \"a\", \"cents\": 1, \"amount\": 999},\n    ]\n    assert total_by_category(rows, amount_key=\"cents\") == {\"a\": 6, \"b\": 7}\n\n\ndef test_refunds_can_cancel_out():\n    rows = [\n        {\"category\": \"books\", \"amount\": 1500},\n        {\"category\": \"books\", \"amount\": -1500},\n        {\"category\": \"music\", \"amount\": -200},\n    ]\n    assert list(total_by_category(rows).items()) == [(\"books\", 0), (\"music\", -200)]\n\n\n@pytest.mark.nz_workload\ndef test_workload_ledger():\n    rows = [\n        {\"category\": f\"cat{(i * 7) % 40:02d}\", \"amount\": (i * 37) % 1000, \"id\": i}\n        for i in range(5000)\n    ]\n    result = total_by_category(rows)\n    assert len(result) == 40\n    assert sum(result.values()) == 2497500\n    assert list(result.items())[:3] == [(\"cat00\", 60000), (\"cat07\", 64625), (\"cat14\", 64250)]\n    assert result[\"cat39\"] == 63625\n",
+    "notes": "Empty input, first-seen category order, custom amount key, totals that cancel to zero; workload: a 5000-row ledger with 40 categories."
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

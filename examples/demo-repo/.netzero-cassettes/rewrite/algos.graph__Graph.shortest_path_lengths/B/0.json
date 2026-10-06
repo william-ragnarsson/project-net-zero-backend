@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "algos.graph:Graph.shortest_path_lengths",
+    "candidate": "B",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "Level-by-level frontier lists",
+    "rationale": "Expands one BFS level at a time, so a node's distance is the level counter and no queue is popped. distances doubles as the visited set; discovery order matches the FIFO queue exactly.",
+    "code": "def shortest_path_lengths(self, source: Hashable) -> dict[Hashable, int]:\n    \"\"\"Return the number of edges on a shortest path from ``source`` to each node.\n\n    Only nodes reachable from ``source`` appear in the result, ``source``\n    itself with distance 0. Nodes are listed in breadth-first order.\n    \"\"\"\n    distances = {source: 0}\n    adjacency = self.adjacency\n    frontier = [source]\n    depth = 0\n    while frontier:\n        depth += 1\n        next_frontier = []\n        for node in frontier:\n            for neighbour in adjacency.get(node, ()):\n                if neighbour not in distances:\n                    distances[neighbour] = depth\n                    next_frontier.append(neighbour)\n        frontier = next_frontier\n    return distances\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

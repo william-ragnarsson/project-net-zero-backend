@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "textkit.dedupe:dedupe_preserve_order",
+    "candidate": "A",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "Track seen keys in a set",
+    "rationale": "The membership test on the `seen` list is O(n), so the loop is O(n·k). A set makes each test O(1); the result list and the order it is built in are unchanged.",
+    "code": "def dedupe_preserve_order(words: list[str], *, ignore_case: bool = False) -> list[str]:\n    \"\"\"Return ``words`` without repeats, keeping each word's first occurrence.\n\n    With ``ignore_case`` two words that differ only in case count as the same\n    word, and the spelling seen first is the one kept. The input list is not\n    modified.\n    \"\"\"\n    seen = set()\n    result = []\n    for word in words:\n        key = word.lower() if ignore_case else word\n        if key not in seen:\n            seen.add(key)\n            result.append(word)\n    return result\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

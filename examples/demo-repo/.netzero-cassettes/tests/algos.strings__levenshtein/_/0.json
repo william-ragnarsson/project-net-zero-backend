@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "tests",
+    "function_id": "algos.strings:levenshtein",
+    "candidate": null,
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "code": "import pytest\nfrom algos.strings import levenshtein\n\n\ndef test_identical_strings():\n    assert levenshtein(\"carbon\", \"carbon\") == 0\n\n\ndef test_empty_strings():\n    assert levenshtein(\"\", \"\") == 0\n    assert levenshtein(\"\", \"abc\") == 3\n    assert levenshtein(\"abc\", \"\") == 3\n\n\ndef test_classic_examples():\n    assert levenshtein(\"kitten\", \"sitting\") == 3\n    assert levenshtein(\"flaw\", \"lawn\") == 2\n    assert levenshtein(\"ab\", \"ba\") == 2\n\n\ndef test_symmetric():\n    assert levenshtein(\"intention\", \"execution\") == levenshtein(\"execution\", \"intention\") == 5\n\n\ndef test_unicode_characters():\n    assert levenshtein(\"café\", \"cafe\") == 1\n    assert levenshtein(\"naïve\", \"naive\") == 1\n\n\n@pytest.mark.nz_workload\ndef test_workload_long_sentences():\n    first = (\"kitten sitting on the warm mat \" * 6)[:160]\n    second = (\"sitting kitten at the cold mall \" * 6)[:150]\n    assert levenshtein(first, second) == 76\n    third = (\"carbon-aware scheduling of batch jobs \" * 4)[:140]\n    fourth = (\"carbon aware schedules for batch work \" * 4)[:145]\n    assert levenshtein(third, fourth) == 38\n",
+    "notes": "Identical and empty strings, classic pairs, symmetry, accented characters; workload: two sentence pairs of about 150 characters."
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

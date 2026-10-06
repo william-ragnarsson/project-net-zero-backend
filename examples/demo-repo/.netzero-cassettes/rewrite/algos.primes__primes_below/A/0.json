@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "algos.primes:primes_below",
+    "candidate": "A",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "Bytearray sieve of Eratosthenes",
+    "rationale": "Trial division against every earlier prime is O(n·π(n)). A sieve crosses out multiples with slice assignment in C, O(n log log n), and lists the survivors in increasing order, the same list.",
+    "code": "def primes_below(limit: int) -> list[int]:\n    \"\"\"Return every prime number smaller than ``limit``, in increasing order.\n\n    Sieve of Eratosthenes: cross out the multiples of each prime up to the\n    square root of ``limit``; what is left is prime.\n    \"\"\"\n    if limit < 3:\n        return []\n    is_prime = bytearray([1]) * limit\n    is_prime[0] = is_prime[1] = 0\n    for n in range(2, int((limit - 1) ** 0.5) + 1):\n        if is_prime[n]:\n            is_prime[n * n :: n] = bytes(len(range(n * n, limit, n)))\n    return [n for n in range(limit) if is_prime[n]]\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

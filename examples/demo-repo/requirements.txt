@@ -1,0 +1,3 @@
+# The Net-Zero demo repo is stdlib-only: there is nothing to install.
+# This file exists so the environment step finds a dependency list and
+# installs offline (only pytest is added on top, by netzero itself).

@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "algos.primes:primes_below",
+    "candidate": "C",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "Memoize a list-based sieve",
+    "rationale": "Sieve instead of trial division, and lru_cache returns repeated limits instantly.",
+    "code": "@functools.lru_cache(maxsize=None)\ndef primes_below(limit: int) -> list[int]:\n    \"\"\"Return every prime number smaller than ``limit``, in increasing order.\"\"\"\n    if limit < 3:\n        return []\n    sieve = [True] * limit\n    sieve[0] = sieve[1] = False\n    for n in range(2, math.isqrt(limit - 1) + 1):\n        if sieve[n]:\n            for multiple in range(n * n, limit, n):\n                sieve[multiple] = False\n    return [n for n, prime in enumerate(sieve) if prime]\n",
+    "new_imports": [
+      "import functools",
+      "import math"
+    ]
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite_repair",
+    "function_id": "datakit.rank:top_k_inplace",
+    "candidate": "A",
+    "attempt": 1
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "diagnosis": "The differential check shows the caller's scores list is no longer sorted afterwards; the original sorts it in place, highest first, and callers rely on that.",
+    "strategy": "In-place sort, branch-free slice",
+    "rationale": "Sorts the caller's list in place, highest first, as the original does, and clamps k at zero in the slice so a single code path serves every k.",
+    "code": "def top_k_inplace(scores: list[float], k: int) -> list[float]:\n    \"\"\"Return the ``k`` largest scores, highest first.\n\n    ``scores`` is sorted in place, highest first, so a caller can keep using\n    the full ranking afterwards. A ``k`` of zero or less gives an empty list.\n    \"\"\"\n    scores.sort(reverse=True)\n    return scores[: max(k, 0)]\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

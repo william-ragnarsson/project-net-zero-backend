@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "triage",
+    "function_id": null,
+    "candidate": null,
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "ratings": [
+      {
+        "function_id": "algos.graph:Graph.shortest_path_lengths",
+        "potential": "high",
+        "testability": "high",
+        "reason": "BFS pops from the list front and scans a visited list: quadratic."
+      },
+      {
+        "function_id": "algos.pairs:has_pair_with_sum",
+        "potential": "high",
+        "testability": "high",
+        "reason": "Nested loops over all pairs; a set of complements makes it linear."
+      },
+      {
+        "function_id": "datakit.aggregate:total_by_category",
+        "potential": "high",
+        "testability": "high",
+        "reason": "Rescans every row once per category; one dict pass suffices."
+      },
+      {
+        "function_id": "datakit.series:moving_average",
+        "potential": "high",
+        "testability": "high",
+        "reason": "Re-sums every window slice from scratch; a running sum is linear."
+      },
+      {
+        "function_id": "algos.primes:primes_below",
+        "potential": "high",
+        "testability": "high",
+        "reason": "Tests each number against every prime found so far; a sieve is far cheaper."
+      },
+      {
+        "function_id": "algos.strings:levenshtein",
+        "potential": "medium",
+        "testability": "high",
+        "reason": "Inherently quadratic, but builds a full table and a list per min() call."
+      },
+      {
+        "function_id": "textkit.dedupe:dedupe_preserve_order",
+        "potential": "high",
+        "testability": "high",
+        "reason": "Membership tests against a growing list; a set makes each one O(1)."
+      },
+      {
+        "function_id": "textkit.freq:word_frequencies",
+        "potential": "high",
+        "testability": "high",
+        "reason": "Calls list.count for every distinct word: quadratic in the text length."
+      },
+      {
+        "function_id": "algos.search:index_of_sorted",
+        "potential": "low",
+        "testability": "high",
+        "reason": "Already binary search via bisect; little left to gain."
+      },
+      {
+        "function_id": "datakit.stats:zscore",
+        "potential": "low",
+        "testability": "high",
+        "reason": "Two linear passes with sum and math.sumprod; already efficient."
+      },
+      {
+        "function_id": "textkit.fields:join_fields",
+        "potential": "low",
+        "testability": "high",
+        "reason": "One list comprehension with substring checks; already tight."
+      },
+      {
+        "function_id": "datakit.rank:top_k_inplace",
+        "potential": "medium",
+        "testability": "high",
+        "reason": "Full sort for k items, but callers may rely on the in-place sort."
+      }
+    ]
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

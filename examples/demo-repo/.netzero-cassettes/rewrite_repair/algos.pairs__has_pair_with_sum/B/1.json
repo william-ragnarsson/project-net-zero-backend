@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite_repair",
+    "function_id": "algos.pairs:has_pair_with_sum",
+    "candidate": "B",
+    "attempt": 1
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "diagnosis": "numbers.sort() reordered the caller's list in place; the original never modifies its argument. Sort a copy instead.",
+    "strategy": "Two pointers over a sorted copy",
+    "rationale": "sorted() leaves the caller's list untouched; walking two pointers inward over the copy finds a pair iff one exists, in O(n log n) instead of O(n²).",
+    "code": "def has_pair_with_sum(numbers: list[int], target: int) -> bool:\n    \"\"\"Tell whether two different positions in ``numbers`` add up to ``target``.\n\n    The same position may not be used twice, but two equal numbers at\n    different positions count as a pair.\n    \"\"\"\n    ordered = sorted(numbers)\n    lo, hi = 0, len(ordered) - 1\n    while lo < hi:\n        total = ordered[lo] + ordered[hi]\n        if total == target:\n            return True\n        if total < target:\n            lo += 1\n        else:\n            hi -= 1\n    return False\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

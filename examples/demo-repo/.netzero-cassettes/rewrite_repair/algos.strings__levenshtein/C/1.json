@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite_repair",
+    "function_id": "algos.strings:levenshtein",
+    "candidate": "C",
+    "attempt": 1
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "diagnosis": "The min( call in the inner loop was never closed. Rewrote that line as explicit comparisons, which also saves a min() call per cell.",
+    "strategy": "Zip over the previous row, compare",
+    "rationale": "zip yields each cell's diagonal and upper neighbours without indexing; the minimum of the three edits is taken with two comparisons. Identical recurrence, two rows of memory.",
+    "code": "def levenshtein(source: str, target: str) -> int:\n    \"\"\"Return the edit distance between ``source`` and ``target``.\n\n    The distance is the smallest number of single-character insertions,\n    deletions and substitutions that turn ``source`` into ``target``.\n    \"\"\"\n    previous = list(range(len(target) + 1))\n    for i, s_char in enumerate(source, 1):\n        current = [i]\n        left = i\n        for t_char, diag, up in zip(target, previous, previous[1:], strict=False):\n            best = diag if s_char == t_char else diag + 1\n            if up + 1 < best:\n                best = up + 1\n            if left + 1 < best:\n                best = left + 1\n            left = best\n            current.append(best)\n        previous = current\n    return previous[-1]\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

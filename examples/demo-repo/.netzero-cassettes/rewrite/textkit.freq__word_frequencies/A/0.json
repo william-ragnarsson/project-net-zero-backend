@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "textkit.freq:word_frequencies",
+    "candidate": "A",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "collections.Counter in one pass",
+    "rationale": "words.count(word) rescans the whole list for every distinct word, O(n·k). Counter counts in one C-level pass; the same sort key then gives the identical ordered dict.",
+    "code": "def word_frequencies(text: str, *, min_length: int = 1) -> dict[str, int]:\n    \"\"\"Count how often each word occurs in ``text``.\n\n    Words are split on whitespace, stripped of surrounding punctuation and\n    lower-cased; words shorter than ``min_length`` are ignored. The result is\n    ordered by count, highest first, with ties in alphabetical order.\n    \"\"\"\n    words = (raw.strip(string.punctuation).lower() for raw in text.split())\n    counts = Counter(word for word in words if word and len(word) >= min_length)\n    return dict(sorted(counts.items(), key=lambda item: (-item[1], item[0])))\n",
+    "new_imports": [
+      "from collections import Counter"
+    ]
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

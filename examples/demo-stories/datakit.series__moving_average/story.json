@@ -1,0 +1,25 @@
+{
+  "function_id": "datakit.series:moving_average",
+  "tests_notes": "Integer and float series, window of one, full-length window, short series, invalid windows; workload: 5000 floats with a window of 200.",
+  "tests_repair": null,
+  "A": {
+    "strategy": "Running window sum",
+    "rationale": "Each step re-slices and re-sums the whole window, O(n·w). Keeping a running total and adding the entering value minus the leaving one is O(n); results agree to rounding error.",
+    "new_imports": [],
+    "expect": "win"
+  },
+  "B": {
+    "strategy": "Prefix sums via itertools.accumulate",
+    "rationale": "accumulate builds all prefix sums in one C-level pass; each window sum is then one subtraction. Same length, same ValueError, and the means match to floating-point rounding.",
+    "new_imports": ["from itertools import accumulate"],
+    "expect": "win"
+  },
+  "C": {
+    "strategy": "List comprehension instead of append loop",
+    "rationale": "Conservative micro-optimization: a comprehension avoids the per-item append call. The slicing and summing are untouched, so every value is bit-for-bit identical.",
+    "new_imports": [],
+    "expect": "ns"
+  },
+  "repairs": {},
+  "notes": "Floats: A and B change the summation order, so tests use pytest.approx and the differential check's 1e-9 relative tolerance accepts them. C keeps the O(n·w) work and measures as no change."
+}

@@ -1,0 +1,33 @@
+{
+  "function_id": "datakit.aggregate:total_by_category",
+  "tests_notes": "Empty input, first-seen category order, custom amount key, totals that cancel to zero; workload: a 5000-row ledger with 40 categories.",
+  "tests_repair": null,
+  "A": {
+    "strategy": "Single pass into a dict",
+    "rationale": "The original rescans every row once per category, O(rows·categories), after a list-membership pass. One pass with dict.get adds each amount to its category; insertion order is first-seen order, as before.",
+    "new_imports": [],
+    "expect": "win"
+  },
+  "B": {
+    "strategy": "collections.Counter accumulation",
+    "rationale": "Counter is a dict subclass that defaults missing keys to 0, so each row is one in-place addition. Keys keep first-seen order and the totals are the same integers.",
+    "new_imports": ["from collections import Counter"],
+    "expect": "differential_mismatch"
+  },
+  "C": {
+    "strategy": "operator.itemgetter for field access",
+    "rationale": "Conservative micro-optimization: itemgetter is implemented in C, so the repeated row lookups avoid subscript bytecode. The two passes and the result are unchanged.",
+    "new_imports": ["from operator import itemgetter"],
+    "expect": "slower"
+  },
+  "repairs": {
+    "B": {
+      "diagnosis": "Returned a collections.Counter where the original returns a plain dict; the values match but the type does not. Convert to dict before returning.",
+      "strategy": "Counter accumulation, plain dict result",
+      "rationale": "One pass of in-place additions on a Counter, then dict() copies it into a plain dict in the same first-seen order: same type, same totals, linear time.",
+      "new_imports": ["from collections import Counter"],
+      "expect": "win"
+    }
+  },
+  "notes": "B returns a Counter: every test passes (Counter == dict) but the differential check compares types, and the repair wins. C is a measurable loss: a function call per lookup costs more than a subscript."
+}

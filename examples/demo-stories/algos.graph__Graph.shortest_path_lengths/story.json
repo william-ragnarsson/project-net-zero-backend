@@ -1,0 +1,25 @@
+{
+  "function_id": "algos.graph:Graph.shortest_path_lengths",
+  "tests_notes": "Isolated and unknown sources, directed reachability, shortest over first-found paths, BFS order with cycles; workload: BFS over a 30×30 grid.",
+  "tests_repair": null,
+  "A": {
+    "strategy": "deque queue, distances dict as visited",
+    "rationale": "queue.pop(0) shifts the whole list and `not in visited` scans it: O(V²). deque.popleft and dict membership are O(1); nodes are discovered in the same order, so the dict is identical.",
+    "new_imports": ["from collections import deque"],
+    "expect": "win"
+  },
+  "B": {
+    "strategy": "Level-by-level frontier lists",
+    "rationale": "Expands one BFS level at a time, so a node's distance is the level counter and no queue is popped. distances doubles as the visited set; discovery order matches the FIFO queue exactly.",
+    "new_imports": [],
+    "expect": "win"
+  },
+  "C": {
+    "strategy": "Replace list queue with deque",
+    "rationale": "Conservative micro-optimization: popleft on a deque is O(1) where list.pop(0) is O(n). Everything else, including the visited list, is unchanged.",
+    "new_imports": ["from collections import deque"],
+    "expect": "ns"
+  },
+  "repairs": {},
+  "notes": "A method on a picklable dataclass. C fixes the obvious pop(0) but not the real cost, the visited-list scan, and measures as no change."
+}

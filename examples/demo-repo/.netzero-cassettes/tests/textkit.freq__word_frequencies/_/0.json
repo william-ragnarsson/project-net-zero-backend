@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "tests",
+    "function_id": "textkit.freq:word_frequencies",
+    "candidate": null,
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "code": "import pytest\nfrom textkit.freq import word_frequencies\n\n\ndef test_counts_words():\n    assert word_frequencies(\"the cat and the hat\") == {\"the\": 2, \"cat\": 1, \"and\": 1, \"hat\": 1}\n\n\ndef test_strips_punctuation_and_case():\n    assert word_frequencies(\"Hello, world! HELLO.\") == {\"hello\": 2, \"world\": 1}\n\n\ndef test_empty_text():\n    assert word_frequencies(\"\") == {}\n\n\ndef test_ties_keep_first_appearance():\n    assert list(word_frequencies(\"pear apple pear apple fig\")) == [\"pear\", \"apple\", \"fig\"]\n\n\ndef test_splits_hyphenated_words():\n    assert word_frequencies(\"state-of-the-art design\") == {\n        \"state\": 1,\n        \"of\": 1,\n        \"the\": 1,\n        \"art\": 1,\n        \"design\": 1,\n    }\n\n\n@pytest.mark.nz_workload\ndef test_workload_long_document():\n    words = []\n    for i in range(4000):\n        word = f\"Term{(i * i) % 797}\"\n        if i % 17 == 0:\n            word = word.upper() + \".\"\n        elif i % 10 == 0:\n            word += \",\"\n        words.append(word)\n    result = word_frequencies(\" \".join(words))\n    assert len(result) == 399\n    assert sum(result.values()) == 4000\n",
+    "notes": "Counting, punctuation and case, empty text, tie order, hyphenated words; workload: a 4000-word document with 399 distinct words."
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}
