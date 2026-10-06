@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "algos.strings:levenshtein",
+    "candidate": "C",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "Zip over the previous row",
+    "rationale": "Iterating zip(target, previous, previous[1:]) yields the diagonal and upper cells directly, so the inner loop does no indexing at all.",
+    "code": "def levenshtein(source: str, target: str) -> int:\n    \"\"\"Return the edit distance between ``source`` and ``target``.\n\n    The distance is the smallest number of single-character insertions,\n    deletions and substitutions that turn ``source`` into ``target``.\n    \"\"\"\n    previous = list(range(len(target) + 1))\n    for i, s_char in enumerate(source, 1):\n        current = [i]\n        left = i\n        for t_char, diag, up in zip(target, previous, previous[1:], strict=False):\n            left = min(left + 1, up + 1, diag + (s_char != t_char)\n            current.append(left)\n        previous = current\n    return previous[-1]\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

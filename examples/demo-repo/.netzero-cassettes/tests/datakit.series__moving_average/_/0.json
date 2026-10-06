@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "tests",
+    "function_id": "datakit.series:moving_average",
+    "candidate": null,
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "code": "import pytest\nfrom datakit.series import moving_average\n\n\ndef test_integer_series():\n    assert moving_average([1, 2, 3, 4, 5], 2) == [1.5, 2.5, 3.5, 4.5]\n\n\ndef test_window_of_one_gives_floats():\n    result = moving_average([3, 1, 4], 1)\n    assert result == [3.0, 1.0, 4.0]\n    assert all(type(x) is float for x in result)\n\n\ndef test_window_as_long_as_series():\n    assert moving_average([2, 4, 6], 3) == [4.0]\n\n\ndef test_series_shorter_than_window():\n    assert moving_average([1, 2], 3) == []\n    assert moving_average([], 1) == []\n\n\ndef test_float_values():\n    assert moving_average([0.1, 0.2, 0.3, 0.4], 2) == pytest.approx([0.15, 0.25, 0.35])\n\n\ndef test_window_must_be_positive():\n    with pytest.raises(ValueError):\n        moving_average([1, 2, 3], 0)\n    with pytest.raises(ValueError):\n        moving_average([1, 2, 3], -3)\n\n\n@pytest.mark.nz_workload\ndef test_workload_long_series():\n    values = [((i * 37) % 101) / 10 + (i % 7) * 0.3 for i in range(5000)]\n    result = moving_average(values, 200)\n    assert len(result) == 4801\n    assert result[0] == pytest.approx(5.8955)\n    assert result[-1] == pytest.approx(5.913)\n    assert sum(result) == pytest.approx(28325.9225)\n",
+    "notes": "Integer and float series, window of one, full-length window, short series, invalid windows; workload: 5000 floats with a window of 200."
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

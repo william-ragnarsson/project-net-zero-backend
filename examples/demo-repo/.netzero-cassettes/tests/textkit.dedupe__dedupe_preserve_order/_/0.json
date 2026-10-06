@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "tests",
+    "function_id": "textkit.dedupe:dedupe_preserve_order",
+    "candidate": null,
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "code": "import pytest\nfrom textkit.dedupe import dedupe_preserve_order\n\n\ndef test_empty_list():\n    assert dedupe_preserve_order([]) == []\n\n\ndef test_keeps_first_occurrence_in_order():\n    words = [\"b\", \"a\", \"b\", \"c\", \"a\", \"d\"]\n    assert dedupe_preserve_order(words) == [\"b\", \"a\", \"c\", \"d\"]\n\n\ndef test_does_not_modify_input():\n    words = [\"x\", \"y\", \"x\"]\n    dedupe_preserve_order(words)\n    assert words == [\"x\", \"y\", \"x\"]\n\n\ndef test_case_sensitive_by_default():\n    assert dedupe_preserve_order([\"Apple\", \"apple\", \"APPLE\"]) == [\"Apple\", \"apple\", \"APPLE\"]\n\n\ndef test_ignore_case_keeps_first_spelling():\n    words = [\"Apple\", \"banana\", \"apple\", \"BANANA\", \"cherry\"]\n    assert dedupe_preserve_order(words, ignore_case=True) == [\"Apple\", \"banana\", \"cherry\"]\n\n\n@pytest.mark.nz_workload\ndef test_workload_many_repeats():\n    words = [(\"Word\" if i % 3 == 0 else \"word\") + str((i * 37) % 900) for i in range(3000)]\n    result = dedupe_preserve_order(words, ignore_case=True)\n    assert len(result) == 900\n    assert result[:4] == [\"Word0\", \"word37\", \"word74\", \"Word111\"]\n",
+    "notes": "Empty input, first-occurrence order, input not mutated, case-sensitive default, ignore_case keeps the first spelling; workload: 3000 words, 900 distinct."
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

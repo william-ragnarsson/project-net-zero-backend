@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "datakit.stats:zscore",
+    "candidate": "C",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "map with the bound float multiply",
+    "rationale": "Conservative micro-optimization: map calls scale.__mul__ from C for every deviation, replacing the per-item bytecode of the final list comprehension.",
+    "code": "def zscore(values: list[float]) -> list[float]:\n    \"\"\"Standardise ``values`` to mean 0 and population standard deviation 1.\n\n    An empty input gives an empty list. When every value is the same the\n    spread is zero, and every score is 0.0.\n    \"\"\"\n    n = len(values)\n    if n == 0:\n        return []\n    mean = sum(values) / n\n    deviations = [v - mean for v in values]\n    variance = math.sumprod(deviations, deviations) / n\n    if variance == 0:\n        return [0.0] * n\n    scale = 1 / math.sqrt(variance)\n    return list(map(scale.__mul__, deviations))\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

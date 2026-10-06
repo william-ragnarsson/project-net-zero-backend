@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "datakit.series:moving_average",
+    "candidate": "C",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "List comprehension instead of append loop",
+    "rationale": "Conservative micro-optimization: a comprehension avoids the per-item append call. The slicing and summing are untouched, so every value is bit-for-bit identical.",
+    "code": "def moving_average(values: list[float], window: int) -> list[float]:\n    \"\"\"Return the mean of every run of ``window`` consecutive values.\n\n    The result has ``len(values) - window + 1`` entries (none when the series\n    is shorter than the window). Raises ``ValueError`` if ``window`` is not\n    positive.\n    \"\"\"\n    if window <= 0:\n        raise ValueError(\"window must be positive\")\n    return [sum(values[end - window : end]) / window for end in range(window, len(values) + 1)]\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

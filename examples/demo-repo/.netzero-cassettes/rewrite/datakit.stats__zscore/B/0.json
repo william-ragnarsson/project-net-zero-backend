@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "datakit.stats:zscore",
+    "candidate": "B",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "statistics.fmean and statistics.pstdev",
+    "rationale": "Delegate the mean and the population standard deviation to the standard library, which computes them accurately, and keep only the scaling pass in Python.",
+    "code": "def zscore(values: list[float]) -> list[float]:\n    \"\"\"Standardise ``values`` to mean 0 and population standard deviation 1.\n\n    An empty input gives an empty list. When every value is the same the\n    spread is zero, and every score is 0.0.\n    \"\"\"\n    n = len(values)\n    if n == 0:\n        return []\n    mean = statistics.fmean(values)\n    spread = statistics.pstdev(values, mean)\n    if spread == 0:\n        return [0.0] * n\n    return [(v - mean) / spread for v in values]\n",
+    "new_imports": [
+      "import statistics"
+    ]
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

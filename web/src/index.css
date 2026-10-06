@@ -1,0 +1,96 @@
+@import '@fontsource/geologica/latin-400.css';
+@import '@fontsource/geologica/latin-500.css';
+@import '@fontsource/geologica/latin-600.css';
+@import '@fontsource/jetbrains-mono/latin-400.css';
+@import '@fontsource/jetbrains-mono/latin-500.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Globals mirror the website's globals.css; the font variables stand in for next/font. */
+:root {
+  color-scheme: dark;
+  --font-geologica: 'Geologica';
+  --font-jetbrains: 'JetBrains Mono';
+}
+
+body {
+  background-color: #0a0a0a;
+  color: #e5e5e5;
+}
+
+::selection {
+  background-color: #00ff8833;
+  color: #00ff88;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00ff8844;
+}
+
+@layer components {
+  /* Small uppercase mono label used above headings and in figures. */
+  .label {
+    @apply font-mono text-[11px] uppercase tracking-[0.14em] text-muted;
+  }
+}
+
+/* Entrance for above-the-fold content; set --delay and --rise inline to stagger. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--rise, 12px));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) var(--delay, 0s) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none;
+  }
+}
+
+/* The ring around a timeline node whose step is running. */
+@keyframes tl-pulse {
+  from {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.75);
+  }
+}
+
+.tl-pulse {
+  animation: tl-pulse 1.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tl-pulse {
+    animation: none;
+    opacity: 0.4;
+  }
+}

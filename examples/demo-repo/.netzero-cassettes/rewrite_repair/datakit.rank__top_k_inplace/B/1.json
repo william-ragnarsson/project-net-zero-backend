@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite_repair",
+    "function_id": "datakit.rank:top_k_inplace",
+    "candidate": "B",
+    "attempt": 1
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "diagnosis": "Sorting a copy left the caller's list unsorted. The in-place descending sort is the function's contract, and list.sort is already the fastest way to provide it.",
+    "strategy": "Keep the original in-place sort",
+    "rationale": "No faster version keeps the contract: every score must end up sorted in the caller's list, and list.sort in C is the cheapest way to do that.",
+    "code": "def top_k_inplace(scores: list[float], k: int) -> list[float]:\n    \"\"\"Return the ``k`` largest scores, highest first.\n\n    ``scores`` is sorted in place, highest first, so a caller can keep using\n    the full ranking afterwards. A ``k`` of zero or less gives an empty list.\n    \"\"\"\n    if k <= 0:\n        return []\n    scores.sort(reverse=True)\n    return scores[:k]\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

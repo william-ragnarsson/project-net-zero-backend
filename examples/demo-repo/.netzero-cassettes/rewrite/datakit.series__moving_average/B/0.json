@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "datakit.series:moving_average",
+    "candidate": "B",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "Prefix sums via itertools.accumulate",
+    "rationale": "accumulate builds all prefix sums in one C-level pass; each window sum is then one subtraction. Same length, same ValueError, and the means match to floating-point rounding.",
+    "code": "def moving_average(values: list[float], window: int) -> list[float]:\n    \"\"\"Return the mean of every run of ``window`` consecutive values.\n\n    The result has ``len(values) - window + 1`` entries (none when the series\n    is shorter than the window). Raises ``ValueError`` if ``window`` is not\n    positive.\n    \"\"\"\n    if window <= 0:\n        raise ValueError(\"window must be positive\")\n    prefix = [0, *accumulate(values)]\n    return [(prefix[end] - prefix[end - window]) / window for end in range(window, len(values) + 1)]\n",
+    "new_imports": [
+      "from itertools import accumulate"
+    ]
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "datakit.rank:top_k_inplace",
+    "candidate": "A",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "heapq.nlargest instead of a full sort",
+    "rationale": "Only k values are needed, so a bounded heap does O(n log k) work instead of sorting all n scores. The k <= 0 guard is kept and the result is the same descending list.",
+    "code": "def top_k_inplace(scores: list[float], k: int) -> list[float]:\n    \"\"\"Return the ``k`` largest scores, highest first.\n\n    ``scores`` is sorted in place, highest first, so a caller can keep using\n    the full ranking afterwards. A ``k`` of zero or less gives an empty list.\n    \"\"\"\n    if k <= 0:\n        return []\n    return heapq.nlargest(k, scores)\n",
+    "new_imports": [
+      "import heapq"
+    ]
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

@@ -1,0 +1,40 @@
+{
+  "function_id": "datakit.stats:zscore",
+  "tests_notes": "Empty and constant input, a hand-checked case, mean and spread properties, precision at a 1e9 offset; workload: 80000 sensor readings.",
+  "tests_repair": null,
+  "A": {
+    "strategy": "Variance from sums, no deviations list",
+    "rationale": "The variance equals the mean of squares minus the squared mean, and math.sumprod gives the sum of squares in C. That drops the stored deviations list and a full Python-level pass.",
+    "new_imports": [],
+    "expect": "tests_failed"
+  },
+  "B": {
+    "strategy": "statistics.fmean and statistics.pstdev",
+    "rationale": "Delegate the mean and the population standard deviation to the standard library, which computes them accurately, and keep only the scaling pass in Python.",
+    "new_imports": ["import statistics"],
+    "expect": "timeout"
+  },
+  "C": {
+    "strategy": "map with the bound float multiply",
+    "rationale": "Conservative micro-optimization: map calls scale.__mul__ from C for every deviation, replacing the per-item bytecode of the final list comprehension.",
+    "new_imports": [],
+    "expect": "slower"
+  },
+  "repairs": {
+    "A": {
+      "diagnosis": "test_large_offset_keeps_precision failed: near 1e9 the mean of squares and the squared mean agree to every bit, so their difference cancels and the variance is lost.",
+      "strategy": "Two-pass variance, norm from math.hypot",
+      "rationale": "Keeps the stable two-pass method: deviations from the mean first, then the spread as their Euclidean norm over sqrt(n), computed by math.hypot in one C call.",
+      "new_imports": [],
+      "expect": "ns"
+    },
+    "B": {
+      "diagnosis": "Rejected as too slow: statistics.pstdev sums squares with exact fractions and ran over seven times slower than the original. Compute the spread in floating point.",
+      "strategy": "statistics.fmean, spread via math.sumprod",
+      "rationale": "Keeps statistics.fmean for an accurately rounded mean and computes the variance from the deviations with math.sumprod in C, as the original does, instead of exact fractions.",
+      "new_imports": ["import statistics"],
+      "expect": "slower"
+    }
+  },
+  "notes": "An honest no-win story. The one-pass variance is numerically unsafe and a test catches it; the safe repair is within noise. statistics.pstdev is exact but over 4x slower, so the differential check rejects it as a timeout; its repair and the bound-method map are slower."
+}

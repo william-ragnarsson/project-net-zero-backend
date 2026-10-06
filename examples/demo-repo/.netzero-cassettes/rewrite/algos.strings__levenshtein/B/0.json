@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "algos.strings:levenshtein",
+    "candidate": "B",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "Bind rows locally, inline the minimum",
+    "rationale": "Keeps the table but reads the current and previous rows through locals and takes the minimum with two comparisons, so each cell avoids four double indexings and a list allocation.",
+    "code": "def levenshtein(source: str, target: str) -> int:\n    \"\"\"Return the edit distance between ``source`` and ``target``.\n\n    The distance is the smallest number of single-character insertions,\n    deletions and substitutions that turn ``source`` into ``target``.\n    \"\"\"\n    rows = len(source) + 1\n    cols = len(target) + 1\n    table = [[0] * cols for _ in range(rows)]\n    for i in range(rows):\n        table[i][0] = i\n    for j in range(cols):\n        table[0][j] = j\n    for i in range(1, rows):\n        above = table[i - 1]\n        row = table[i]\n        s_char = source[i - 1]\n        for j in range(1, cols):\n            best = above[j - 1] + (s_char != target[j - 1])\n            if above[j] + 1 < best:\n                best = above[j] + 1\n            if row[j - 1] + 1 < best:\n                best = row[j - 1] + 1\n            row[j] = best\n    return table[rows - 1][cols - 1]\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

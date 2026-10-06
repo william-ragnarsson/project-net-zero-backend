@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "algos.primes:primes_below",
+    "candidate": "B",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "Trial division only up to sqrt(n)",
+    "rationale": "A composite n always has a prime factor no larger than isqrt(n), so primes above it never need testing. Same primality decision, same order, far fewer divisions.",
+    "code": "def primes_below(limit: int) -> list[int]:\n    \"\"\"Return every prime number smaller than ``limit``, in increasing order.\n\n    A number is prime when no prime up to its square root divides it, so each\n    candidate is tested only against those primes.\n    \"\"\"\n    primes = []\n    for n in range(2, limit):\n        root = math.isqrt(n)\n        for p in primes:\n            if p > root:\n                primes.append(n)\n                break\n            if n % p == 0:\n                break\n        else:\n            primes.append(n)\n    return primes\n",
+    "new_imports": [
+      "import math"
+    ]
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

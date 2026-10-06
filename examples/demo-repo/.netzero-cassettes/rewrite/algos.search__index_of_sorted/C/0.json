@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "algos.search:index_of_sorted",
+    "candidate": "C",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "Bind append and bisect to locals",
+    "rationale": "Conservative micro-optimization: local names skip the attribute and global lookups inside the loop. The search and the result are unchanged.",
+    "code": "def index_of_sorted(items: list[int], targets: list[int]) -> list[int]:\n    \"\"\"Find each of ``targets`` in the sorted list ``items`` by binary search.\n\n    Returns, for every target in order, the index of its first occurrence in\n    ``items``, or -1 when it is absent. ``items`` must be sorted ascending.\n    \"\"\"\n    n = len(items)\n    positions = []\n    append = positions.append\n    search = bisect_left\n    for target in targets:\n        i = search(items, target)\n        append(i if i < n and items[i] == target else -1)\n    return positions\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

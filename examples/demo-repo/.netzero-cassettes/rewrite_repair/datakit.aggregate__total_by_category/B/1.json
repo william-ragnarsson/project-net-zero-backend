@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite_repair",
+    "function_id": "datakit.aggregate:total_by_category",
+    "candidate": "B",
+    "attempt": 1
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "diagnosis": "Returned a collections.Counter where the original returns a plain dict; the values match but the type does not. Convert to dict before returning.",
+    "strategy": "Counter accumulation, plain dict result",
+    "rationale": "One pass of in-place additions on a Counter, then dict() copies it into a plain dict in the same first-seen order: same type, same totals, linear time.",
+    "code": "def total_by_category(rows: list[dict[str, Any]], *, amount_key: str = \"amount\") -> dict[str, int]:\n    \"\"\"Sum ``row[amount_key]`` per ``row[\"category\"]``.\n\n    Amounts are integers (for example cents). Categories appear in the order\n    they are first seen in ``rows``; an empty input gives an empty dict.\n    \"\"\"\n    totals = Counter()\n    for row in rows:\n        totals[row[\"category\"]] += row[amount_key]\n    return dict(totals)\n",
+    "new_imports": [
+      "from collections import Counter"
+    ]
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

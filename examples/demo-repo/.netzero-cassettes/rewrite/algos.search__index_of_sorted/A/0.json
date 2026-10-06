@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "algos.search:index_of_sorted",
+    "candidate": "A",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "First-occurrence dict for O(1) lookups",
+    "rationale": "Each lookup is a binary search, O(log n). Indexing the first position of every value once makes each target a single dict probe, and setting a key only when it is new keeps the first occurrence.",
+    "code": "def index_of_sorted(items: list[int], targets: list[int]) -> list[int]:\n    \"\"\"Find each of ``targets`` in the sorted list ``items`` by binary search.\n\n    Returns, for every target in order, the index of its first occurrence in\n    ``items``, or -1 when it is absent. ``items`` must be sorted ascending.\n    \"\"\"\n    first = {}\n    for i, value in enumerate(items):\n        if value not in first:\n            first[value] = i\n    return [first.get(target, -1) for target in targets]\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

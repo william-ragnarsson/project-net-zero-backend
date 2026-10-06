@@ -1,0 +1,10 @@
+[
+  {
+    "id": "synthetic",
+    "title": "Synthetic demo run",
+    "description": "Six functions of the bundled demo repository, one per outcome: accepted, reverted, all rejected, no significant win, untestable and not capturable.",
+    "src": "/replays/synthetic.events.jsonl",
+    "functions": 6,
+    "duration_ms": 201657
+  }
+]

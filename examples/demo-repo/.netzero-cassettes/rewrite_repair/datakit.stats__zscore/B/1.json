@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite_repair",
+    "function_id": "datakit.stats:zscore",
+    "candidate": "B",
+    "attempt": 1
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "diagnosis": "Rejected as too slow: statistics.pstdev sums squares with exact fractions and ran over seven times slower than the original. Compute the spread in floating point.",
+    "strategy": "statistics.fmean, spread via math.sumprod",
+    "rationale": "Keeps statistics.fmean for an accurately rounded mean and computes the variance from the deviations with math.sumprod in C, as the original does, instead of exact fractions.",
+    "code": "def zscore(values: list[float]) -> list[float]:\n    \"\"\"Standardise ``values`` to mean 0 and population standard deviation 1.\n\n    An empty input gives an empty list. When every value is the same the\n    spread is zero, and every score is 0.0.\n    \"\"\"\n    n = len(values)\n    if n == 0:\n        return []\n    mean = statistics.fmean(values)\n    deviations = [v - mean for v in values]\n    variance = math.sumprod(deviations, deviations) / n\n    if variance == 0:\n        return [0.0] * n\n    scale = 1 / math.sqrt(variance)\n    return [d * scale for d in deviations]\n",
+    "new_imports": [
+      "import statistics"
+    ]
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

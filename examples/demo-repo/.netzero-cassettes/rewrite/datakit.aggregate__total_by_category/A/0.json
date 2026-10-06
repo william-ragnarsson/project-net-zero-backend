@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "datakit.aggregate:total_by_category",
+    "candidate": "A",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "Single pass into a dict",
+    "rationale": "The original rescans every row once per category, O(rows·categories), after a list-membership pass. One pass with dict.get adds each amount to its category; insertion order is first-seen order, as before.",
+    "code": "def total_by_category(rows: list[dict[str, Any]], *, amount_key: str = \"amount\") -> dict[str, int]:\n    \"\"\"Sum ``row[amount_key]`` per ``row[\"category\"]``.\n\n    Amounts are integers (for example cents). Categories appear in the order\n    they are first seen in ``rows``; an empty input gives an empty dict.\n    \"\"\"\n    totals = {}\n    for row in rows:\n        category = row[\"category\"]\n        totals[category] = totals.get(category, 0) + row[amount_key]\n    return totals\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

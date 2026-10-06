@@ -1,0 +1,33 @@
+{
+  "function_id": "algos.primes:primes_below",
+  "tests_notes": "Limits below two, exclusive limit, small primes, squares of primes skipped; workload: all 900 primes below 7000.",
+  "tests_repair": null,
+  "A": {
+    "strategy": "Bytearray sieve of Eratosthenes",
+    "rationale": "Trial division against every earlier prime is O(n·π(n)). A sieve crosses out multiples with slice assignment in C, O(n log log n), and lists the survivors in increasing order, the same list.",
+    "new_imports": [],
+    "expect": "win"
+  },
+  "B": {
+    "strategy": "Trial division only up to sqrt(n)",
+    "rationale": "A composite n always has a prime factor no larger than isqrt(n), so primes above it never need testing. Same primality decision, same order, far fewer divisions.",
+    "new_imports": ["import math"],
+    "expect": "win"
+  },
+  "C": {
+    "strategy": "Memoize a list-based sieve",
+    "rationale": "Sieve instead of trial division, and lru_cache returns repeated limits instantly.",
+    "new_imports": ["import functools", "import math"],
+    "expect": "static_rule"
+  },
+  "repairs": {
+    "C": {
+      "diagnosis": "Adding lru_cache changes the decorators, which must stay identical; it would also hand every caller the same mutable list. Dropped the cache, kept the sieve.",
+      "strategy": "List-based sieve, no cache",
+      "rationale": "Marks composites in a list of booleans up to isqrt(limit) and collects the unmarked numbers in increasing order: the same primes, in O(n log log n) instead of O(n·π(n)).",
+      "new_imports": ["import math"],
+      "expect": "win"
+    }
+  },
+  "notes": "C first breaks a static rule (it adds @lru_cache), is told why, and its repair becomes a third win."
+}

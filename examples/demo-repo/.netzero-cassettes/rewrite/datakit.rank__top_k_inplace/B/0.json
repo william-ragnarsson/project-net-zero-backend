@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "datakit.rank:top_k_inplace",
+    "candidate": "B",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "sorted() copy, then slice",
+    "rationale": "Sorting a copy avoids writing back into the caller's list, and slicing the first k gives the same descending result for every k.",
+    "code": "def top_k_inplace(scores: list[float], k: int) -> list[float]:\n    \"\"\"Return the ``k`` largest scores, highest first.\n\n    ``scores`` is sorted in place, highest first, so a caller can keep using\n    the full ranking afterwards. A ``k`` of zero or less gives an empty list.\n    \"\"\"\n    if k <= 0:\n        return []\n    return sorted(scores, reverse=True)[:k]\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

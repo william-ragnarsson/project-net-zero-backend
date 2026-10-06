@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "tests",
+    "function_id": "algos.graph:Graph.shortest_path_lengths",
+    "candidate": null,
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "code": "import pytest\nfrom algos.graph import Graph\n\n\ndef grid(width, height):\n    adjacency = {}\n    for y in range(height):\n        for x in range(width):\n            node = y * width + x\n            neighbours = []\n            if x > 0:\n                neighbours.append(node - 1)\n            if x < width - 1:\n                neighbours.append(node + 1)\n            if y > 0:\n                neighbours.append(node - width)\n            if y < height - 1:\n                neighbours.append(node + width)\n            adjacency[node] = neighbours\n    return Graph(adjacency)\n\n\ndef test_isolated_source():\n    assert Graph({\"a\": []}).shortest_path_lengths(\"a\") == {\"a\": 0}\n    assert Graph().shortest_path_lengths(\"x\") == {\"x\": 0}\n\n\ndef test_directed_chain_skips_unreachable():\n    graph = Graph({\"a\": [\"b\"], \"b\": [\"c\"], \"c\": [], \"z\": [\"a\"]})\n    assert graph.shortest_path_lengths(\"a\") == {\"a\": 0, \"b\": 1, \"c\": 2}\n    assert graph.shortest_path_lengths(\"c\") == {\"c\": 0}\n\n\ndef test_shortest_not_first_found():\n    graph = Graph({\"a\": [\"b\", \"d\"], \"b\": [\"c\"], \"c\": [\"d\"], \"d\": [\"e\"], \"e\": []})\n    assert graph.shortest_path_lengths(\"a\") == {\"a\": 0, \"b\": 1, \"d\": 1, \"c\": 2, \"e\": 2}\n\n\ndef test_breadth_first_order_with_cycle():\n    graph = Graph({1: [2, 3], 2: [4, 1], 3: [4], 4: [5, 1], 5: []})\n    result = graph.shortest_path_lengths(1)\n    assert list(result.items()) == [(1, 0), (2, 1), (3, 1), (4, 2), (5, 3)]\n\n\n@pytest.mark.nz_workload\ndef test_workload_grid():\n    result = grid(30, 30).shortest_path_lengths(0)\n    assert len(result) == 900\n    assert list(result)[:3] == [0, 1, 30]\n    assert result[899] == 58\n    assert result[31] == 2\n",
+    "notes": "Isolated and unknown sources, directed reachability, shortest over first-found paths, BFS order with cycles; workload: BFS over a 30×30 grid."
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

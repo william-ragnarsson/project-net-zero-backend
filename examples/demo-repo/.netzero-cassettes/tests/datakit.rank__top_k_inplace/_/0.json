@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "tests",
+    "function_id": "datakit.rank:top_k_inplace",
+    "candidate": null,
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "code": "import pytest\nfrom datakit.rank import top_k_inplace\n\n\ndef test_returns_largest_first():\n    assert top_k_inplace([3.5, 9.0, 1.25, 7.0], 2) == [9.0, 7.0]\n\n\ndef test_zero_or_negative_k_gives_empty():\n    assert top_k_inplace([2.0, 9.0, 4.0], 0) == []\n    assert top_k_inplace([2.0, 9.0, 4.0], -3) == []\n\n\ndef test_k_larger_than_the_list():\n    assert top_k_inplace([1.0, 3.0, 2.0], 10) == [3.0, 2.0, 1.0]\n\n\ndef test_keeps_duplicates():\n    assert top_k_inplace([5.0, 1.0, 5.0, 3.0, 5.0], 4) == [5.0, 5.0, 5.0, 3.0]\n\n\ndef test_empty_scores():\n    assert top_k_inplace([], 3) == []\n\n\n@pytest.mark.nz_workload\ndef test_workload_leaderboard():\n    scores = [((i * 7919) % 100003) / 1000 for i in range(100000)]\n    top = top_k_inplace(scores, 10)\n    assert len(top) == 10\n    assert top[:5] == [100.002, 100.001, 100.0, 99.999, 99.998]\n    assert top[-1] == 99.993\n",
+    "notes": "Largest first, zero and negative k, k beyond the list, duplicates, empty input; workload: a 100000-score leaderboard, top 10."
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

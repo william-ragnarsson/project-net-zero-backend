@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "datakit.stats:zscore",
+    "candidate": "A",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "Variance from sums, no deviations list",
+    "rationale": "The variance equals the mean of squares minus the squared mean, and math.sumprod gives the sum of squares in C. That drops the stored deviations list and a full Python-level pass.",
+    "code": "def zscore(values: list[float]) -> list[float]:\n    \"\"\"Standardise ``values`` to mean 0 and population standard deviation 1.\n\n    An empty input gives an empty list. When every value is the same the\n    spread is zero, and every score is 0.0.\n    \"\"\"\n    n = len(values)\n    if n == 0:\n        return []\n    mean = sum(values) / n\n    variance = math.sumprod(values, values) / n - mean * mean\n    if variance <= 0:\n        return [0.0] * n\n    scale = 1 / math.sqrt(variance)\n    return [(v - mean) * scale for v in values]\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}

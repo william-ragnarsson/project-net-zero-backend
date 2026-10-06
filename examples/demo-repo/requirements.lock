@@ -1,0 +1,2 @@
+# Locked dependencies for the Net-Zero demo repo: none, it is stdlib-only.
+# `uv pip install -r requirements.lock` is a no-op and works offline.

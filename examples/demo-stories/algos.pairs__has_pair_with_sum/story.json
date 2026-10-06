@@ -1,0 +1,40 @@
+{
+  "function_id": "algos.pairs:has_pair_with_sum",
+  "tests_notes": "Empty and single lists, found and missing pairs, no reuse of one position, equal numbers, negatives; workload: 800 numbers, one miss and one late hit.",
+  "tests_repair": null,
+  "A": {
+    "strategy": "One pass with a set of complements",
+    "rationale": "Instead of trying all O(n²) pairs, remember the numbers seen so far in a set and test target - x in O(1). Returns True exactly when some pair sums to target.",
+    "new_imports": [],
+    "expect": "tests_failed"
+  },
+  "B": {
+    "strategy": "Sort, then walk two pointers inward",
+    "rationale": "After sorting, a pair summing to target exists iff two pointers moving inward meet it: O(n log n) instead of O(n²). Same boolean result for every input.",
+    "new_imports": [],
+    "expect": "differential_mismatch"
+  },
+  "C": {
+    "strategy": "Hoist len and the complement",
+    "rationale": "Conservative micro-optimization: computes len(numbers) once and target - numbers[i] once per outer step, so the inner loop is a single comparison. Same pairs visited in the same order.",
+    "new_imports": [],
+    "expect": "win"
+  },
+  "repairs": {
+    "A": {
+      "diagnosis": "Adding x to the set before the lookup let a number pair with itself: target 2 matched 1 + 1 in [3, 8, 1, 4]. Look up first, then add.",
+      "strategy": "Check the complement before adding",
+      "rationale": "Each number is compared only with numbers at earlier positions, so one position is never used twice, while equal numbers at two positions still pair. O(n) instead of O(n²).",
+      "new_imports": [],
+      "expect": "win"
+    },
+    "B": {
+      "diagnosis": "numbers.sort() reordered the caller's list in place; the original never modifies its argument. Sort a copy instead.",
+      "strategy": "Two pointers over a sorted copy",
+      "rationale": "sorted() leaves the caller's list untouched; walking two pointers inward over the copy finds a pair iff one exists, in O(n log n) instead of O(n²).",
+      "new_imports": [],
+      "expect": "win"
+    }
+  },
+  "notes": "Both fast ideas fail first: A lets a number pair with itself (a test catches it), B sorts the caller's list (only the differential check catches it). Both repairs win; C is a modest win."
+}

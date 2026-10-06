@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "key": {
+    "stage": "rewrite",
+    "function_id": "algos.pairs:has_pair_with_sum",
+    "candidate": "A",
+    "attempt": 0
+  },
+  "model": "hand-written",
+  "request_hash": null,
+  "output": {
+    "strategy": "One pass with a set of complements",
+    "rationale": "Instead of trying all O(n²) pairs, remember the numbers seen so far in a set and test target - x in O(1). Returns True exactly when some pair sums to target.",
+    "code": "def has_pair_with_sum(numbers: list[int], target: int) -> bool:\n    \"\"\"Tell whether two different positions in ``numbers`` add up to ``target``.\n\n    The same position may not be used twice, but two equal numbers at\n    different positions count as a pair.\n    \"\"\"\n    seen = set()\n    for x in numbers:\n        seen.add(x)\n        if target - x in seen:\n            return True\n    return False\n",
+    "new_imports": []
+  },
+  "usage": null,
+  "stop_reason": "end_turn"
+}
