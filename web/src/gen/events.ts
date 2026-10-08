@@ -57,6 +57,11 @@ export interface Contract {
   api_error: ApiError;
   create_run_request: CreateRunRequest;
   select_request: SelectRequest;
+  history_status: HistoryStatus;
+  project_summary: ProjectSummary;
+  project_detail: ProjectDetail;
+  activity_page: ActivityPage;
+  function_diff: FunctionDiff;
 }
 export interface RunCreated {
   seq: number;
@@ -1219,7 +1224,15 @@ export interface ReplayRef {
 }
 export interface ApiError {
   detail: string;
-  code: "bad_request" | "invalid_url" | "no_api_key" | "run_active" | "not_found" | "bad_state" | "not_ready";
+  code:
+    | "bad_request"
+    | "invalid_url"
+    | "no_api_key"
+    | "run_active"
+    | "not_found"
+    | "bad_state"
+    | "not_ready"
+    | "no_database";
   active_run: RunSummary | null;
 }
 /**
@@ -1237,6 +1250,241 @@ export interface SelectRequest {
    * @maxItems 20
    */
   function_ids: [string, ...string[]];
+}
+export interface HistoryStatus {
+  enabled: boolean;
+  ok: boolean;
+  detail: string;
+  database: string | null;
+  server_version: string | null;
+  migrations: string[];
+  tables: HistoryTable[];
+  head_position: number;
+  projected_position: number;
+  last_sync_ts: number | null;
+  recent: StoredEvent[];
+}
+export interface HistoryTable {
+  name: string;
+  rows: number;
+  bytes: number;
+}
+/**
+ * One row of the ``events`` table, without its payload.
+ */
+export interface StoredEvent {
+  position: number;
+  stream_id: string;
+  stream_seq: number;
+  type: string;
+  ts: number;
+  recorded_at: number;
+  bytes: number;
+}
+export interface ProjectSummary {
+  id: string;
+  name: string;
+  kind: "github" | "demo";
+  url: string | null;
+  runs: number;
+  runs_completed: number;
+  last_run_ts: number | null;
+  last_state:
+    | (
+        | "created"
+        | "cloning"
+        | "installing"
+        | "discovering"
+        | "triaging"
+        | "awaiting_selection"
+        | "optimizing"
+        | "finalizing"
+        | "completed"
+        | "failed"
+        | "cancelled"
+        | "interrupted"
+      )
+    | null;
+  functions_tracked: number;
+  functions_improved: number;
+  latest_g_saved_per_1m_calls: number | null;
+  best_g_saved_per_1m_calls: number | null;
+  trend: TrendPoint[];
+}
+export interface TrendPoint {
+  run_id: string;
+  created_ts: number;
+  state:
+    | "created"
+    | "cloning"
+    | "installing"
+    | "discovering"
+    | "triaging"
+    | "awaiting_selection"
+    | "optimizing"
+    | "finalizing"
+    | "completed"
+    | "failed"
+    | "cancelled"
+    | "interrupted";
+  g_saved_per_1m_calls: number;
+  accepted: number;
+}
+export interface ProjectDetail {
+  project: ProjectSummary;
+  runs: HistoryRun[];
+  functions: FunctionHistory[];
+  candidates: CandidateStat[];
+  rejections: RejectStat[];
+}
+export interface HistoryRun {
+  run_id: string;
+  created_ts: number;
+  ended_ts: number | null;
+  state:
+    | "created"
+    | "cloning"
+    | "installing"
+    | "discovering"
+    | "triaging"
+    | "awaiting_selection"
+    | "optimizing"
+    | "finalizing"
+    | "completed"
+    | "failed"
+    | "cancelled"
+    | "interrupted";
+  mode: "live" | "demo" | "record";
+  ref: string | null;
+  base_sha: string | null;
+  functions_total: number;
+  functions_done: number;
+  counts_by_outcome: {
+    accepted?: number;
+    no_significant_win?: number;
+    all_rejected?: number;
+    reverted?: number;
+    skipped_untestable?: number;
+    skipped_capture?: number;
+    failed?: number;
+    cancelled?: number;
+  };
+  mean_reduction_pct: number | null;
+  g_saved_per_1m_calls: number;
+  kwh_saved_per_1m_calls: number;
+  llm_cost_usd: number;
+  error: string | null;
+  events: number;
+}
+export interface FunctionHistory {
+  function_id: string;
+  qualname: string;
+  module: string | null;
+  file: string | null;
+  runs: number;
+  accepted: number;
+  best_delta_pct: number | null;
+  points: FunctionPoint[];
+}
+/**
+ * One function in one run.
+ */
+export interface FunctionPoint {
+  run_id: string;
+  created_ts: number;
+  base_sha: string | null;
+  outcome:
+    | (
+        | "accepted"
+        | "no_significant_win"
+        | "all_rejected"
+        | "reverted"
+        | "skipped_untestable"
+        | "skipped_capture"
+        | "failed"
+        | "cancelled"
+      )
+    | null;
+  winner: ("A" | "B" | "C") | null;
+  delta_pct: number | null;
+  ci_lo: number | null;
+  ci_hi: number | null;
+  g_saved_per_1m_calls: number | null;
+  reason: string;
+}
+export interface CandidateStat {
+  candidate_id: "A" | "B" | "C";
+  hint: string;
+  proposed: number;
+  eligible: number;
+  significant: number;
+  accepted: number;
+}
+export interface RejectStat {
+  reason:
+    | "syntax"
+    | "static_rule"
+    | "tests_failed"
+    | "differential_mismatch"
+    | "timeout"
+    | "llm_error"
+    | "identical"
+    | "bench_failed"
+    | "measurement_inconsistent";
+  count: number;
+}
+export interface ActivityPage {
+  items: ActivityItem[];
+  next: string | null;
+}
+export interface ActivityItem {
+  position: number;
+  seq: number;
+  ts: number;
+  type:
+    | "run.created"
+    | "run.selection.confirmed"
+    | "function.completed"
+    | "run.completed"
+    | "run.failed"
+    | "run.cancelled"
+    | "run.interrupted";
+  run_id: string;
+  project_id: string;
+  project_name: string;
+  function_id: string | null;
+  outcome:
+    | (
+        | "accepted"
+        | "no_significant_win"
+        | "all_rejected"
+        | "reverted"
+        | "skipped_untestable"
+        | "skipped_capture"
+        | "failed"
+        | "cancelled"
+      )
+    | null;
+  winner: ("A" | "B" | "C") | null;
+  delta_pct: number | null;
+  g_saved_per_1m_calls: number | null;
+  functions: number | null;
+  accepted: number | null;
+  message: string | null;
+}
+export interface FunctionDiff {
+  run_id: string;
+  function_id: string;
+  outcome:
+    | "accepted"
+    | "no_significant_win"
+    | "all_rejected"
+    | "reverted"
+    | "skipped_untestable"
+    | "skipped_capture"
+    | "failed"
+    | "cancelled";
+  diff: string | null;
 }
 
 /** Every persisted event; `type` is the discriminant. */

@@ -11,10 +11,11 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from netzero import __version__, paths
-from netzero.api import routes_artifacts, routes_events, routes_meta, routes_runs
+from netzero.api import routes_artifacts, routes_events, routes_history, routes_meta, routes_runs
 from netzero.api.schemas import ApiError
 from netzero.api.static import mount_spa
 from netzero.config import Settings, get_settings
+from netzero.history.service import History, HistoryUnavailable
 from netzero.pipeline.orchestrator import RunManager, RunRejected
 
 logger = logging.getLogger("netzero")
@@ -27,6 +28,7 @@ STATUS = {
     "bad_state": 409,
     "no_api_key": 412,
     "not_ready": 412,
+    "no_database": 503,
 }
 
 
@@ -40,6 +42,11 @@ async def run_rejected_handler(request: Request, exc: Exception) -> JSONResponse
         STATUS.get(exc.code, 400),
         ApiError(detail=exc.detail, code=exc.code, active_run=exc.active_run),  # type: ignore[arg-type]
     )
+
+
+async def history_unavailable_handler(request: Request, exc: Exception) -> JSONResponse:
+    assert isinstance(exc, HistoryUnavailable)
+    return _error(STATUS["no_database"], ApiError(detail=exc.detail, code="no_database"))
 
 
 async def validation_handler(request: Request, exc: Exception) -> JSONResponse:
@@ -60,21 +67,30 @@ def create_app(settings: Settings | None = None, *, manager: RunManager | None =
         m = manager or RunManager(settings)
         m.start()
         app.state.manager = m
+        history = History(settings, m.store) if settings.database_url else None
+        if history:
+            history.start()
+        app.state.history = history
         try:
             yield
         finally:
             # an active run ends `interrupted`; open SSE streams then close
             await m.shutdown()
+            if history:
+                await history.stop()  # after the manager, so the interrupted run is stored
 
     app = FastAPI(title="net-zero", version=__version__, lifespan=lifespan)
     app.state.settings = settings
     app.state.manager = None
+    app.state.history = None
     app.add_exception_handler(RunRejected, run_rejected_handler)
+    app.add_exception_handler(HistoryUnavailable, history_unavailable_handler)
     app.add_exception_handler(RequestValidationError, validation_handler)
     app.include_router(routes_meta.router)
     app.include_router(routes_runs.router)
     app.include_router(routes_events.router)
     app.include_router(routes_artifacts.router)
+    app.include_router(routes_history.router)
     mount_spa(app, paths.WEB_DIST)
     return app
 
