@@ -11,12 +11,14 @@ real pipeline / FakePipeline ─emit─▶ EventBus ─append─▶ runs/<id>/ev
                                         ├─▶ Projection ─▶ run.json ─▶ GET /api/runs/{id}
                                         ├─▶ SSE GET /api/runs/{id}/events ─▶ web reducer ─▶ RunModel
                                         └─▶ CLI renderer (netzero/render.py)
+runs/*/events.jsonl ─ship─▶ Postgres events ─▶ HistoryFold ─▶ read models ─▶ /api/history ─▶ History tab
 web/src/synth ─▶ web/public/replays/*.events.jsonl ─▶ replay driver ─▶ web reducer
 ```
 
 - **Contract**: `netzero/events.py` (events and run records) and `netzero/api/schemas.py` (REST bodies plus the `Contract` export root). `web/src/gen/` is generated from them by `make types`. Edit the Python, regenerate, and commit both. `tests/unit/test_events.py` fails when `schema.json` is stale.
 - **Grammar**: `netzero/pipeline/grammar.py` holds the ordering rules the reducer relies on. `seq` starts at 1 with no gaps. Every `X.started` is closed by exactly one `X.completed` with the same `(function_id, candidate_id, attempt)`. Only one function is open at a time. Candidate events come before `function.decision`. The terminal event is last and directly follows `run.state_changed`. Every fake, recorded and replayed run in the tests must pass it, and `uv run netzero replay --check <file>` checks any log.
 - **Folds**: `netzero/pipeline/projection.py` builds `RunDetail` / `run.json`, and `web/src/state/reducer.ts` builds `RunModel`. They mirror each other on purpose. For example, both replace the TDP estimate with a calibrated `p_core_w`, and both use discovery's `heuristic_ranked` until triage completes. When you change a rule in one fold, change it in the other. `netzero/render.py` is a third consumer.
+- **History**: optional (`NETZERO_DATABASE_URL`). `netzero/history/service.py` copies new lines from the `runs/` files into an append-only Postgres `events` table, so it sees exactly what the file holds, including runs the CLI wrote. Its projector folds them with `HistoryFold`, a subclass of `Projection`, so a fold rule changed in `projection.py` reaches history on its own. A field history needs beyond `run.json` goes in `HistoryFold`. Changing a fold rule means existing read models are stale until `netzero db rebuild`. The `/api/history` bodies live in `schemas.py` like the rest of the contract.
 - **Producers**: three things emit events. The real pipeline (`pipeline/orchestrator.py`, `function_flow.py` and others), `FakePipeline` (`pipeline/fake.py`, turned on with `NETZERO_FAKE_PIPELINE=1`), and the TypeScript synthetic scenario (`web/src/synth/`) behind the bundled replay. A new event or payload field needs all three.
 
 ## Streaming behaviour both sides depend on
@@ -56,7 +58,8 @@ The two halves are coupled only through the log, so a change that looks local ca
 ## Current state (October 2026)
 
 - PR #17 replaced the old blocking `POST /optimize` pipeline (`src/`, `server.py`, LangGraph) with this event stream. Notes that mention those files are out of date.
-- The UI only has the replay path so far: `/replay` plays bundled files through the reducer and into the timeline. `/runs/:runId` (`web/src/routes/RunPage.tsx`) is a placeholder. The live SSE view, the step drawer, motion and the run summary aren't built yet. For the live view, the store already supports the flow: `hydrate` from `GET /api/runs/{id}/events.jsonl`, then resume SSE from `hydratedThroughSeq`.
+- For a single run, the UI only has the replay path so far: `/replay` plays bundled files through the reducer and into the timeline. `/runs/:runId` (`web/src/routes/RunPage.tsx`) is a placeholder. The live SSE view, the step drawer, motion and the run summary aren't built yet. For the live view, the store already supports the flow: `hydrate` from `GET /api/runs/{id}/events.jsonl`, then resume SSE from `hydratedThroughSeq`.
+- Run history in Postgres and the History tab (`/history`, `web/src/history/`) landed. `make db` starts a database. The history has no integration tests yet.
 - `NETZERO_FAKE_PIPELINE=1 make dev` runs scripted live runs with no API key, git or uv. It's the quickest way to drive the UI with a real stream.
 - The demo cassettes are generated from the hand-written `examples/demo-stories`. `make demo-cassettes` deletes any recorded cassettes.
 

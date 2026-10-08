@@ -17,6 +17,9 @@ export function AppShell() {
             <NavLink to="/replay" className={navLink}>
               Replays
             </NavLink>
+            <NavLink to="/history" className={navLink}>
+              History
+            </NavLink>
           </nav>
         </div>
       </header>

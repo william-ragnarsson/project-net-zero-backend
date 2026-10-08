@@ -63,6 +63,10 @@ class Settings(BaseSettings):
     runs_dir: Path = paths.DEFAULT_RUNS_DIR
     sse_heartbeat_s: float = 15.0
 
+    # history: optional Postgres copy of every run's events (see netzero/history)
+    database_url: str | None = None  # e.g. postgresql://netzero:netzero@127.0.0.1:54320/netzero
+    history_sync_s: float = 1.5  # how often the server ships new events
+
     # development: drive runs with the scripted FakePipeline instead of the real one
     fake_pipeline: bool = False
     fake_speed: float = 1.0  # >1 is faster

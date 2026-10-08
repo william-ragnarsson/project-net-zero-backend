@@ -22,6 +22,8 @@ HackEurope project.
 - [uv](https://docs.astral.sh/uv/) and git. uv installs Python 3.12 for you.
 - Node 20+ and npm, for the web UI.
 - Optional: an Anthropic API key. Live runs need one; demo and replay do not.
+- Optional: Docker, Podman or a local Postgres 17, for the History tab
+  (see [Run history in Postgres](#run-history-in-postgres)).
 
 ### Setup and run
 
@@ -53,6 +55,7 @@ Open <http://127.0.0.1:8000>. Set a different port with `make run PORT=9000`.
 | `# NETZERO_STAGES__REWRITE__EFFORT=high` | Per-stage effort. It is sent only to models that accept it (Haiku 4.5 does not). |
 | `# NETZERO_COUNTRY=SWE` | ISO3 country code for grid carbon intensity. Unset means CodeCarbon's world average. |
 | `# NETZERO_PORT=8000` | Default port for `netzero serve` when run directly. `make run`/`serve`/`dev` pass `--port` themselves; use `make run PORT=9000` there. |
+| `# NETZERO_DATABASE_URL=postgresql://...` | Turns on run history in Postgres. `make db` starts a database at this address. Unset means no history; everything else works the same. |
 
 ## How a run works
 
@@ -279,6 +282,10 @@ Run commands as `uv run netzero <command>`. Every command takes `--help`.
 | `calibrate` | `--force` | Measures `P_core` with powermetrics on macOS (about 10 s, needs passwordless sudo). On failure it prints the sudoers line to add. |
 | `doctor` | `--refresh` (re-probe power) | Required checks: git, uv, Python 3.12. Advisory checks: node 20+, built web UI, API key, demo cassettes, and how CO2 will be measured. |
 | `export-schema` | `--out` (`web/src/gen/schema.json`), `--check` | Writes the JSON schema of the event/API contract. `--check` fails if the file is stale. |
+| `db status` | | What the history database holds, table by table. Needs `NETZERO_DATABASE_URL`, like every `db` command, and creates the tables on first use. |
+| `db sync` | | Stores every run under `runs/` that isn't stored yet, plus any events added since, and folds them into the read models. The server does this on its own every 1.5 s. |
+| `db import FILE...` | | Stores `events.jsonl` files from anywhere, for example the bundled replays. Already stored events are skipped. |
+| `db rebuild` | | Drops the read models and folds every stored event again. The events stay. |
 
 Exit codes of `run`: **0** completed; **1** failed, or rejected before
 starting (no API key, a run already active, invalid URL); **2** bad
@@ -307,6 +314,15 @@ missing artifact, wrong state, rejected run, invalid body) return
 | `GET /api/runs/{id}/events` | Server-sent events (below) |
 | `GET /api/runs/{id}/events.jsonl` | The full log as NDJSON, complete lines only |
 | `GET /api/runs/{id}/artifacts/patch`, `.../artifacts/zip`, `.../artifacts/functions/{function_id}/diff` | `netzero-<id>.patch`, the optimized repo zip, one function's merge diff; 404 `not_found` if absent |
+| `GET /api/history/status` | Always 200. `enabled` is false without `NETZERO_DATABASE_URL`; otherwise `ok`, rows per table, the stored and projected event positions, the newest events, and the last error in `detail` |
+| `GET /api/history/projects` | One summary per repository with a stored run, most recently run first |
+| `GET /api/history/projects/{id}` | A project's runs, each function's results across runs, candidate and rejection counts; 404 `not_found` |
+| `GET /api/history/activity` | Notable events across all runs, newest first. `?project=`, `?limit=` (30, max 100), `?before=` (the previous page's `next`) |
+| `GET /api/history/runs/{id}/events.jsonl` | A stored run's log, byte for byte what the run wrote |
+| `GET /api/history/runs/{id}/diff?function_id=` | The diff a run merged or proposed for one function |
+
+The history reads answer 503 `no_database` when history is off or the
+database can't be reached.
 
 Every other path serves the built SPA from `web/dist`. Unknown paths without
 a file extension fall back to `index.html`; missing files (with an extension)
@@ -367,6 +383,7 @@ prefix. Nested fields use `__`. Defaults are from `netzero/config.py`.
 | `NETZERO_INSTALL_TIMEOUT_S`, `NETZERO_TEST_TIMEOUT_S` | `600`, `120` | Install and per-step timeouts |
 | `NETZERO_EUR_PER_KWH`, `NETZERO_EU_ETS_EUR_PER_T`, `NETZERO_VCM_EUR_PER_T`, `NETZERO_CALLS_PER_YEAR` | `0.20`, `70`, `15`, `1000000` | Assumptions for the projections |
 | `NETZERO_SSE_HEARTBEAT_S` | `15` | SSE idle heartbeat |
+| `NETZERO_DATABASE_URL`, `NETZERO_HISTORY_SYNC_S` | unset, `1.5` | Postgres for run history, and how often the server copies new events into it |
 | `NETZERO_FAKE_PIPELINE`, `NETZERO_FAKE_SCENARIO`, `NETZERO_FAKE_SPEED`, `NETZERO_FAKE_SEED` | `false`, `demo`, `1.0`, `0` | Server runs the scripted FakePipeline instead of the real one (UI development; no key needed). Scenarios: `demo`, `short`, `fail_env` |
 
 ## Demo repo and cassettes
@@ -408,11 +425,42 @@ expectations.
   synthetic run (`synthetic.events.jsonl`, six functions, one per outcome)
   whose events are scripted, not measured.
 
+## Run history in Postgres
+
+Optional. With `NETZERO_DATABASE_URL` set, the server copies every run's
+events into Postgres and the web UI's History tab shows them: one card per
+repository, runs over time, which functions improved across runs, and the
+diff each run merged.
+
+```sh
+make db        # Postgres 17 on 127.0.0.1:54320: Docker or Podman via compose.yaml, else a local cluster in .netzero-db/
+# uncomment NETZERO_DATABASE_URL in .env, then restart the server
+uv run netzero db import web/public/replays/*.events.jsonl   # optional: something to look at
+```
+
+`make db-stop` stops it and keeps the data. A Postgres you already run works
+too; the database must be UTF8.
+
+**How it is stored** (`netzero/history/`, schema in
+`migrations/0001_init.sql`). It is an event store. Each run is a stream,
+`run:<id>`. The `events` table holds every line of `events.jsonl` exactly as
+written, with `type`, `ts`, `data` and the scope pulled out into generated
+columns. A trigger refuses `UPDATE`, `DELETE` and `TRUNCATE` on it, so it only
+grows. Appends check the stream's version (optimistic concurrency), so two
+writers can't interleave a run. `projects`, `runs` and `function_results` are
+read models that a checkpointed projector folds from the events, using the
+same rules as `run.json`. `netzero db rebuild` drops and refolds them.
+
+The files under `runs/` stay the source of truth. Postgres is a copy: the
+server ships new lines every 1.5 s, picks up runs that `netzero run` wrote
+while it was down, and catches up after the database comes back.
+
 ## Web UI (in progress)
 
 The frontend is being built now; expect changes. `web/src/router.tsx`
 currently defines `/` (landing page), `/runs/:runId` (a run, live over SSE or
-finished), `/replay` (replay of a bundled run) and `*` (not found).
+finished), `/replay` (replay of a bundled run), `/history` and
+`/history/:projectId` (run history from Postgres) and `*` (not found).
 
 To work on the UI: `make run` serves the production build via `netzero
 serve`; `make dev` runs `netzero serve --reload` plus the Vite dev server,
@@ -432,6 +480,7 @@ with no key, git or uv work.
 | `make test-web` | `tsc -b` + vitest in `web/` |
 | `make lint` | `ruff check` + `ruff format --check` on `netzero` and `tests` |
 | `make types` | `netzero export-schema` + `npm run gen:types` (regenerates `web/src/gen/`) |
+| `make db` / `make db-stop` | Start or stop Postgres for run history (see [Run history in Postgres](#run-history-in-postgres)) |
 | `make record-demo`, `make demo-cassettes`, `make doctor` | See the CLI reference |
 | `make clean` | Remove `runs/`, `.netzero-cache/` and `web/dist/` (the literal `runs/`; a custom `NETZERO_RUNS_DIR` is left alone) |
 
@@ -454,6 +503,7 @@ netzero/config.py    Settings (NETZERO_*, .env)
 netzero/events.py    Event and run models: the contract with the UI
 netzero/api/         FastAPI app: routes, SSE, artifacts, SPA static files, schema root
 netzero/pipeline/    Orchestrator, state machine, clone/env/discovery/triage, per-function flow, store, FakePipeline
+netzero/history/     Postgres run history: event store, projector, queries, background sync
 netzero/bench/       Power probe, calibration, bench lane, statistics, units
 netzero/llm/         Anthropic client, prompts, structured outputs, cassettes, demo stories, pricing
 netzero/sandbox/     Child processes, env scrubbing, process groups, and the in-venv harness (pytest plugin, capture, diffcheck, bench worker, rlimit launcher)
