@@ -24,7 +24,7 @@ from pydantic import BaseModel
 
 from netzero import __version__
 from netzero.config import Settings
-from netzero.errors import error_info
+from netzero.errors import LlmFatalError, error_info
 from netzero.events import (
     DATA_CLASSES,
     STARTED_TO_COMPLETED,
@@ -347,8 +347,10 @@ class RunContext:
         """One selected function: ``function.started`` ... ``function.completed``.
 
         A non-cancel exception inside the block is logged and becomes outcome
-        ``failed``; the run moves on to the next function. Steps of this function
-        still open when the block ends are closed first.
+        ``failed``; the run moves on to the next function, unless it is an
+        ``LlmFatalError``, which every later function would hit too: that one
+        propagates and fails the run. Steps of this function still open when the
+        block ends are closed first.
         """
         fid = info.function_id
         self.emit(
@@ -388,6 +390,8 @@ class RunContext:
                 ),
                 function_id=fid,
             )
+            if isinstance(exc, LlmFatalError):
+                raise
         else:
             self.close_steps(ErrorInfo(kind="cancelled", message="step abandoned"), function_id=fid)
             if fs.outcome is None:

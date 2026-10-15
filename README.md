@@ -151,6 +151,13 @@ merge winner into trunk -> re-verify -> commit (accepted) | git reset --hard (re
 Function outcomes: `accepted`, `no_significant_win`, `all_rejected`,
 `reverted`, `skipped_untestable`, `skipped_capture`, `failed`, `cancelled`.
 
+A Claude call that fails after the SDK's retries (rate limit, 5xx,
+overloaded) fails only the step or candidate that made it. An error every
+later call would repeat (401, 402, 403, or a 400 about the API key,
+workspace or credit balance) ends the run with `run.failed` (`llm_error`)
+and the API's message, after marking the function it hit `failed`. Calls
+queued behind it never reach the API.
+
 ### Outputs
 
 | Path under `runs/<id>/` | What |
@@ -280,15 +287,16 @@ Run commands as `uv run netzero <command>`. Every command takes `--help`.
 | `record` | `--cassettes`, `--select`, `-o/--out` (`web/public/replays/demo.events.jsonl`), `-v` | Runs the demo, copies its events to `--out` and adds an entry to `index.json` next to it. Without `--cassettes` it replays the hand-written cassettes and needs no key. With `--cassettes` it calls Claude and overwrites the matching cassette files (needs a key). |
 | `demo-cassettes` | | Deletes `examples/demo-repo/.netzero-cassettes` and rebuilds it from `examples/demo-stories`. |
 | `calibrate` | `--force` | Measures `P_core` with powermetrics on macOS (about 10 s, needs passwordless sudo). On failure it prints the sudoers line to add. |
-| `doctor` | `--refresh` (re-probe power) | Required checks: git, uv, Python 3.12. Advisory checks: node 20+, built web UI, API key, demo cassettes, and how CO2 will be measured. |
+| `doctor` | `--refresh` (re-probe power) | Required checks: git, uv, Python 3.12. Advisory checks: node 20+, built web UI, API key, demo cassettes, and how CO2 will be measured. With a key set, it counts the tokens of a one-word message for each configured model (free) and prints the API's error if the key is rejected. |
 | `export-schema` | `--out` (`web/src/gen/schema.json`), `--check` | Writes the JSON schema of the event/API contract. `--check` fails if the file is stale. |
 | `db status` | | What the history database holds, table by table. Needs `NETZERO_DATABASE_URL`, like every `db` command, and creates the tables on first use. |
 | `db sync` | | Stores every run under `runs/` that isn't stored yet, plus any events added since, and folds them into the read models. The server does this on its own every 1.5 s. |
 | `db import FILE...` | | Stores `events.jsonl` files from anywhere, for example the bundled replays. Already stored events are skipped. |
 | `db rebuild` | | Drops the read models and folds every stored event again. The events stay. |
 
-Exit codes of `run`: **0** completed; **1** failed, or rejected before
-starting (no API key, a run already active, invalid URL); **2** bad
+Exit codes of `run`: **0** completed; **1** failed (including a key the
+API rejects), or rejected before starting (no API key, a run already
+active, invalid URL); **2** bad
 arguments (both or neither of URL and `--demo`); **130** cancelled or
 interrupted. `record`, `fake`, `replay --check`, `doctor`, `calibrate`,
 `demo-cassettes` and `export-schema --check` exit 1 on failure; `fake` exits

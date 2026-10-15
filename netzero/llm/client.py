@@ -10,6 +10,10 @@ Per call: a refusal fails at once (``llm_refusal``), an answer cut off at
 ``max_tokens`` is retried once with twice the budget, and an answer that does
 not fit the schema is retried once. Each API request reports its usage, so the
 run's cost includes the attempts that failed.
+
+An API error that every later request would repeat (a rejected key, a key
+with no workspace, no credit) raises ``LlmFatalError``, and so does every call
+after it: the run fails once instead of once per function.
 """
 
 from __future__ import annotations
@@ -26,7 +30,7 @@ import anthropic
 from pydantic import BaseModel, ValidationError
 
 from netzero.config import Settings, StageModelConfig
-from netzero.errors import LlmError
+from netzero.errors import LlmError, LlmFatalError
 from netzero.events import LlmStage, LlmUsageData
 from netzero.llm import pricing
 from netzero.llm.cassette import CassetteEntry, CassetteKey, CassetteStore, request_hash
@@ -37,7 +41,12 @@ log = logging.getLogger(__name__)
 MAX_RETRIES = 6  # the SDK's own retries of 408/409/429/5xx and dropped connections
 MIN_THINKING_BUDGET = 1024
 ERROR_CHARS = 300
+KEY_CHECK_TIMEOUT_S = 15.0
 _KEY_LIKE = re.compile(r"sk-ant-[A-Za-z0-9_-]+")
+# authentication, billing and permission errors; the SDK never retries them
+FATAL_STATUS = frozenset({401, 402, 403})
+# 400s about the account rather than the request: no workspace, no credit
+_FATAL_400 = re.compile(r"api[ _-]?key|workspace|credit balance", re.IGNORECASE)
 
 UsageCallback = Callable[[LlmUsageData, CassetteKey], None]
 WarnCallback = Callable[[str], None]
@@ -122,6 +131,21 @@ def _clip(text: str, limit: int = ERROR_CHARS) -> str:
     return text if len(text) <= limit else text[: limit - 3] + "..."
 
 
+def _api_message(e: anthropic.APIError) -> str:
+    """The API's own error message, before redaction."""
+    body = e.body if isinstance(e.body, dict) else {}
+    error = body.get("error") if isinstance(body.get("error"), dict) else {}
+    return str(error.get("message") or e.message or type(e).__name__)
+
+
+def is_fatal(e: anthropic.APIError) -> bool:
+    """Whether every later request would fail the same way, whatever it asks."""
+    status = getattr(e, "status_code", None)
+    if status in FATAL_STATUS:
+        return True
+    return status == 400 and bool(_FATAL_400.search(_api_message(e)))
+
+
 def _answer_text(msg: Any) -> str:
     return "".join(b.text for b in msg.content if getattr(b, "type", None) == "text")
 
@@ -168,6 +192,7 @@ class LlmClient:
         self._owns_sdk = False
         self._sem = asyncio.Semaphore(max(1, settings.llm_concurrency))
         self._warned: set[str] = set()
+        self._fatal: str | None = None  # the message of the first fatal error
 
     @property
     def sdk(self) -> Any:
@@ -246,12 +271,14 @@ class LlmClient:
     async def _send(self, params: dict[str, Any]) -> tuple[Any, int]:
         sdk = self.sdk
         async with self._sem:
+            if self._fatal is not None:  # calls queued behind the one that failed
+                raise LlmFatalError(self._fatal)
             started = time.monotonic()
             try:
                 async with sdk.messages.stream(**params) as stream:
                     msg = await stream.get_final_message()
             except anthropic.APIError as e:
-                raise LlmError(self._describe(e)) from None
+                raise self._api_error(e) from None
             except Exception as e:
                 # The SDK retries only the opening request: a stream dropped mid-answer
                 # raises its transport's own errors. Fail the step, not the function.
@@ -260,12 +287,36 @@ class LlmClient:
                 raise LlmError(_clip(f"Anthropic API stream failed: {text}")) from None
         return msg, round((time.monotonic() - started) * 1000)
 
+    async def check_key(self) -> list[str]:
+        """Count the tokens of a one-word message for each configured model; it is free.
+
+        Returns the models checked. Raises ``LlmFatalError`` or ``LlmError`` with
+        the API's message.
+        """
+        sdk = self.sdk.with_options(max_retries=1)
+        models = list(dict.fromkeys(self.settings.stages.models().values()))
+        for model in models:
+            try:
+                await sdk.messages.count_tokens(
+                    model=model,
+                    messages=[{"role": "user", "content": "ping"}],
+                    timeout=KEY_CHECK_TIMEOUT_S,
+                )
+            except anthropic.APIError as e:
+                raise self._api_error(e) from None
+        return models
+
+    def _api_error(self, e: anthropic.APIError) -> LlmError | LlmFatalError:
+        text = self._describe(e)
+        if not is_fatal(e):
+            return LlmError(text)
+        self._fatal = self._fatal or text
+        return LlmFatalError(text)
+
     def _describe(self, e: anthropic.APIError) -> str:
         """Status and the API's own message, never request headers or the key."""
         status = getattr(e, "status_code", None)
-        body = e.body if isinstance(e.body, dict) else {}
-        error = body.get("error") if isinstance(body.get("error"), dict) else {}
-        text = self._redact(str(error.get("message") or e.message or type(e).__name__))
+        text = self._redact(_api_message(e))
         prefix = (
             f"Anthropic API error ({status})"
             if status

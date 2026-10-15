@@ -43,6 +43,16 @@ class LlmError(NetzeroError):
     kind: ErrorKind = "llm_error"
 
 
+class LlmFatalError(NetzeroError):
+    """An API error every later call would repeat (a bad key, no credit): it fails the run.
+
+    Not an ``LlmError``, so the handlers that turn one failed call into a failed
+    step or function let it through to the orchestrator.
+    """
+
+    kind: ErrorKind = "llm_error"
+
+
 class BenchError(NetzeroError):
     kind: ErrorKind = "bench_error"
 
