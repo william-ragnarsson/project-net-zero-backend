@@ -18,7 +18,9 @@ async def follow(
     every event is on disk before it is published, and queued events that the
     file already supplied are skipped by seq.
 
-    Yields ``None`` after ``idle_s`` without events (time for a heartbeat).
+    Yields ``None`` (time for a heartbeat) once the persisted log has been
+    replayed, so a client learns it has caught up, and again after every
+    ``idle_s`` without events.
     Ends after the terminal event, when the bus closes, or when this
     subscriber overflowed; the caller can resume from its last seq.
     """
@@ -31,6 +33,7 @@ async def follow(
             last = seq
             if line_type(line) in TERMINAL_EVENT_TYPES:
                 return
+        yield None
         while True:
             if sub.overflowed and sub.queue.empty():
                 return  # too slow

@@ -1,96 +1,67 @@
 @import '@fontsource/geologica/latin-400.css';
 @import '@fontsource/geologica/latin-500.css';
-@import '@fontsource/geologica/latin-600.css';
 @import '@fontsource/jetbrains-mono/latin-400.css';
-@import '@fontsource/jetbrains-mono/latin-500.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Globals mirror the website's globals.css; the font variables stand in for next/font. */
 :root {
-  color-scheme: dark;
-  --font-geologica: 'Geologica';
-  --font-jetbrains: 'JetBrains Mono';
+  color-scheme: light;
+  --nz-page: #fcfcfb;
+  --nz-sidebar: #f6f6f4;
+  --nz-surface: #ffffff;
+  --nz-hover: #efefec;
+  --nz-line: #ebebe8;
+  --nz-control: #e2e2de;
+  --nz-control-strong: #8f8f89;
+  --nz-edge: #dcdcd8;
+  --nz-edge-strong: #b9b9b3;
+  --nz-ink: #1d1d1b;
+  --nz-ink-2: #575752;
+  --nz-ink-3: #6c6c67;
+  --nz-accent: #2f7a57;
+  --nz-accent-hover: #276b4b;
+  --nz-accent-tint: #edf5f0;
+  --nz-fail: #b4473a;
+  --nz-fail-tint: #fbefed;
+  --nz-caution: #8a5f10;
+  --nz-code-keyword: #7a3e9d;
+  --nz-code-string: #1f5f8b;
+  --nz-scrim: rgba(29, 29, 27, 0.2);
 }
 
-body {
-  background-color: #0a0a0a;
-  color: #e5e5e5;
-}
-
-::selection {
-  background-color: #00ff8833;
-  color: #00ff88;
-}
-
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #0a0a0a;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #1a1a1a;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #00ff8844;
-}
-
-@layer components {
-  /* Small uppercase mono label used above headings and in figures. */
-  .label {
-    @apply font-mono text-[11px] uppercase tracking-[0.14em] text-muted;
+/* No font-feature-settings on body: it is inherited and would override tabular-nums. */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
   }
-}
-
-/* Entrance for above-the-fold content; set --delay and --rise inline to stagger. */
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(var(--rise, 12px));
+  body {
+    @apply bg-page font-sans text-base text-ink antialiased;
   }
-  to {
-    opacity: 1;
-    transform: none;
+  :focus-visible {
+    outline: 2px solid var(--nz-ink-2);
+    outline-offset: 2px;
   }
-}
-
-.rise {
-  animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) var(--delay, 0s) both;
+  ::selection {
+    background: #d6e9de;
+    color: var(--nz-ink);
+  }
+  code,
+  kbd,
+  pre,
+  samp {
+    @apply font-mono;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rise {
-    animation: none;
-  }
-}
-
-/* The ring around a timeline node whose step is running. */
-@keyframes tl-pulse {
-  from {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(1.75);
-  }
-}
-
-.tl-pulse {
-  animation: tl-pulse 1.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tl-pulse {
-    animation: none;
-    opacity: 0.4;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

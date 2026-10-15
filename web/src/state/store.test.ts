@@ -44,6 +44,33 @@ describe('createRunSession', () => {
   })
 })
 
+describe('RunSession.epoch', () => {
+  it('increments on hydrate and on a discontinuous batch that changes state, not on a normal one', () => {
+    const session = createRunSession()
+    expect(session.getState().epoch).toBe(0)
+    expect(session.getState().dispatchBatch(events.slice(0, 10))).toBe(true)
+    expect(session.getState().epoch).toBe(0)
+    session.getState().hydrate(events.slice(0, 5))
+    expect(session.getState().epoch).toBe(1)
+    expect(session.getState().dispatchBatch(events.slice(5, 20), { discontinuous: true })).toBe(true)
+    expect(session.getState().epoch).toBe(2)
+    expect(session.getState().state).toEqual(reduce(initialRunModel(), events.slice(0, 20)))
+  })
+
+  it('an all-duplicate discontinuous batch leaves the session identical and reports the flag unconsumed', () => {
+    const session = createRunSession()
+    session.getState().dispatchBatch(events.slice(0, 20))
+    const before = session.getState()
+    const listener = vi.fn()
+    session.subscribe(listener)
+    expect(session.getState().dispatchBatch(events.slice(10, 20), { discontinuous: true })).toBe(false)
+    expect(session.getState()).toBe(before)
+    expect(listener).not.toHaveBeenCalled()
+    expect(session.getState().dispatchBatch(events.slice(10, 21), { discontinuous: true })).toBe(true)
+    expect(session.getState().epoch).toBe(1)
+  })
+})
+
 describe('createEventPump', () => {
   it('dispatches everything pushed within a frame as one batch', () => {
     const { schedule, frame } = manualScheduler()

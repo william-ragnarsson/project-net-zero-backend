@@ -9,7 +9,7 @@ A run is a folder, `runs/<id>/`. Its `events.jsonl` is the source of truth and e
 ```
 real pipeline / FakePipeline ─emit─▶ EventBus ─append─▶ runs/<id>/events.jsonl
                                         ├─▶ Projection ─▶ run.json ─▶ GET /api/runs/{id}
-                                        ├─▶ SSE GET /api/runs/{id}/events ─▶ web reducer ─▶ RunModel
+                                        ├─▶ SSE GET /api/runs/{id}/events ─▶ web/src/sources/live.ts ─▶ web reducer ─▶ RunModel ─▶ deriveTree ─▶ web/src/tree
                                         └─▶ CLI renderer (netzero/render.py)
 web/src/synth ─▶ web/public/replays/*.events.jsonl ─▶ replay driver ─▶ web reducer
 ```
@@ -25,10 +25,11 @@ The README's HTTP API section has the full SSE spec. These are the parts that sh
 
 - The bus writes each event to disk before publishing it. `emit` is synchronous and must be called from the event loop, never from a worker thread.
 - Each SSE frame carries `id: <seq>`, and a client resumes with `Last-Event-ID` or `?after=`. The server disconnects a slow subscriber, which then has to resume, and every reconnect resends events the client may already have. So the UI gets duplicates and batches of any size. The reducer skips events with `seq <= lastSeq`, and it must reach the same state whether events arrive one at a time or in a batch (`reducer.test.ts` checks this).
-- `heartbeat` frames exist only on the SSE stream (`event: heartbeat`, no id). They are never written to the log and are not a `RunEvent`.
+- `heartbeat` frames exist only on the SSE stream (`event: heartbeat`, no id). They are never written to the log and are not a `RunEvent`. One follows the replayed backlog on every connect (both the live and the tailing path), then one per idle spell. The UI relies on that first one: its `last_seq` ends the reconnect backlog, and its `server_ts` sets the run clock.
 - The stream ends after the terminal event. A finished run whose client has every event answers 204, which stops `EventSource` from reconnecting.
 - If another process (the CLI) owns the run, the server streams it by tailing the file. A live event has to make sense when read back from disk.
 - The UI dispatches events once per animation frame (`createEventPump` in `web/src/state/store.ts`), so a fast replay or a reconnect backlog arrives as one large batch.
+- The live source (`web/src/sources/live.ts`) hydrates from `events.jsonl`, then opens SSE with `?after=hydratedThroughSeq`. It closes the EventSource on the terminal event and, when the browser gives up (204 and 404 look the same), probes `GET /api/runs/{id}`. After a reconnect, events count as backlog and dispatch as discontinuous until a heartbeat shows the client has caught up.
 - The Vite dev proxy turns off timeouts and compression for `/api` so the stream isn't buffered. Keep both settings if you edit `vite.config.ts`.
 - The reducer counts unknown event types in `RunModel.unknownTypes` instead of throwing, so an older UI build keeps working on a newer log.
 
@@ -52,11 +53,14 @@ The two halves are coupled only through the log, so a change that looks local ca
 - Does it depend on an order the grammar guarantees, or only on one the current pipeline happens to produce? If it needs a new guarantee, add the rule to `grammar.py` so the backend has to keep it.
 - Does it need data that no event carries? Add that data to the contract on the backend. Don't reconstruct it from log lines or timing.
 - Totals shown before `run.completed` must match that event's `summary` (`reducer.test.ts` checks this).
+- The tree's frontier is the one open function (grammar: one function open at a time). Its hold on a finished layer is display state in `web/src/tree/frontierHold.ts` and resets on `RunSession.epoch` (bumped by hydrate and discontinuous batches). Never put it in `RunModel`.
+- The run page picks its view from the model alone (`web/src/run/view.ts`). It waits 400 ms in `awaiting_selection` before showing the choice, because an auto-selected run emits `run.selection.confirmed` right after; `RunCreatedData` does not say whether `auto_select` was set.
+- Every value the UI shows comes from the model, a selector or the REST summaries. A gap, such as bench progress, is a contract proposal; never interpolate from timing.
 
 ## Current state (October 2026)
 
 - PR #17 replaced the old blocking `POST /optimize` pipeline (`src/`, `server.py`, LangGraph) with this event stream. Notes that mention those files are out of date.
-- The UI only has the replay path so far: `/replay` plays bundled files through the reducer and into the timeline. `/runs/:runId` (`web/src/routes/RunPage.tsx`) is a placeholder. The live SSE view, the step drawer, motion and the run summary aren't built yet. For the live view, the store already supports the flow: `hydrate` from `GET /api/runs/{id}/events.jsonl`, then resume SSE from `hydratedThroughSeq`.
+- The UI is a light app shell (`web/src/components/AppShell.tsx`): dashboard, new run, runs, a run page that follows a live run (hydrate, then SSE) through finding, choosing and optimizing to the result, replays at `/replays/:id`, and read-only settings. A run is drawn as a vertical tree (`web/src/tree/`, from `deriveTree(RunModel)`). The dashboard total counts completed live GitHub runs only, newest per repository (`selectImpact` in `web/src/lib/runs.ts`).
 - `NETZERO_FAKE_PIPELINE=1 make dev` runs scripted live runs with no API key, git or uv. It's the quickest way to drive the UI with a real stream.
 - The demo cassettes are generated from the hand-written `examples/demo-stories`. `make demo-cassettes` deletes any recorded cassettes.
 

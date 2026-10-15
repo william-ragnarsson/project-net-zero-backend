@@ -1,0 +1,27 @@
+/* The tree's SVG edges and the code rows inside its cards. The faces themselves use Tailwind. */
+.tree-edge { fill: none; stroke: var(--nz-edge); stroke-width: 1; }
+.tree-edge.rj { stroke-dasharray: 2 3; }                       /* rejected candidate */
+.tree-edge.fr { stroke: var(--nz-edge-strong); }               /* frontier path */
+.tree-edge.w { stroke: var(--nz-accent); stroke-width: 1.5; }  /* winner path */
+.tree-edge.rvp { stroke: var(--nz-caution); }
+.tree-edge.rv { stroke: var(--nz-caution); stroke-dasharray: 2 2; }
+.tree-dot.q { fill: var(--nz-page); stroke: var(--nz-ink-3); }
+.tree-dot.live { fill: var(--nz-ink-2); }
+.tree-dot.end { fill: var(--nz-ink-3); }
+.tree-draw { transition: stroke-dashoffset 200ms cubic-bezier(0.22, 1, 0.36, 1); }
+
+.code-row { display: grid; grid-template-columns: 2.25rem 1fr; padding-right: 0.75rem; }
+.code-row .ln { color: var(--nz-ink-3); text-align: right; padding-right: 0.5rem; user-select: none; }
+/* a hanging indent, so a wrapped line would still start under its own code */
+.code-row .tx { white-space: pre; padding-left: var(--hi, 0); text-indent: calc(-1 * var(--hi, 0)); }
+.code-row.add { background: var(--nz-accent-tint); }
+.code-row.del { background: var(--nz-fail-tint); }
+.code-row.add .ln::after { content: '+'; color: var(--nz-accent); margin-left: 0.25rem; }
+.code-row.del .ln::after { content: '\2212'; color: var(--nz-fail); margin-left: 0.25rem; }
+.code-row.gap .tx { color: var(--nz-ink-3); }   /* skipped lines */
+
+.tok-k { color: var(--nz-code-keyword); }
+.tok-s, .tok-n { color: var(--nz-code-string); }
+.tok-d, .tok-m { color: var(--nz-ink-3); }
+.tok-b, .tok-o { color: var(--nz-ink-2); }
+.tok-f, .tok-i { color: var(--nz-ink); }

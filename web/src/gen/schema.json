@@ -3011,7 +3011,7 @@
     },
     "Heartbeat": {
       "additionalProperties": false,
-      "description": "SSE-only keepalive, sent as ``event: heartbeat`` with no id. Never persisted.",
+      "description": "SSE-only, sent as ``event: heartbeat`` with no id and never persisted.\n\nOne follows the replayed backlog on every connect, then one after each idle\nspell. ``last_seq`` is the run's newest seq when it was sent: a client that\nhas it is caught up. ``server_ts`` is the server's clock (epoch ms).",
       "properties": {
         "type": {
           "const": "heartbeat",

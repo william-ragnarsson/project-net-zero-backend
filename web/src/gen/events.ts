@@ -1055,7 +1055,11 @@ export interface LogData {
   truncated: boolean;
 }
 /**
- * SSE-only keepalive, sent as ``event: heartbeat`` with no id. Never persisted.
+ * SSE-only, sent as ``event: heartbeat`` with no id and never persisted.
+ *
+ * One follows the replayed backlog on every connect, then one after each idle
+ * spell. ``last_seq`` is the run's newest seq when it was sent: a client that
+ * has it is caught up. ``server_ts`` is the server's clock (epoch ms).
  */
 export interface Heartbeat {
   type: "heartbeat";

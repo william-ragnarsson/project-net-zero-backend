@@ -1,5 +1,5 @@
 // Wires a recorded event log to a run session: driver -> per-frame pump -> store.
-import type { RunEvent } from '../gen/events'
+import type { ReplayRef, RunEvent } from '../gen/events'
 import { createEventPump, createRunSession, type RunSessionStore, type Scheduler } from '../state/store'
 import { createReplayDriver, SPEEDS, type ReplayDriver, type Speed } from './replayDriver'
 
@@ -23,7 +23,7 @@ export function parseSpeed(raw: string | null): Speed {
 /** `?query` with its slashes left readable: a query may contain them, and src values are paths. */
 export const readableQuery = (params: URLSearchParams): string => `?${params.toString().replaceAll('%2F', '/')}`
 
-export const replayHref = (src: string): string => `/replay${readableQuery(new URLSearchParams({ src }))}`
+export const replayHref = (id: string): string => `/replays/${encodeURIComponent(id)}`
 
 /**
  * `src` as a path on `origin`, or null when it points elsewhere: a shared link must not
@@ -36,6 +36,26 @@ export function sameOriginSrc(src: string, origin: string): string | null {
   } catch {
     return null
   }
+}
+
+/** The params a replay link carries over to the replay's own page. */
+const KEPT = ['speed', 'at', 'node'] as const
+
+/**
+ * Where an old `/replay?src=` link goes now: the page of the index entry with that file, with
+ * `speed`, `at` and `node` kept, or the list when the file is foreign or not in the index.
+ */
+export function resolveReplayRedirect(index: readonly ReplayRef[], params: URLSearchParams, origin: string): string {
+  const raw = params.get('src')
+  const src = raw === null ? null : sameOriginSrc(raw, origin)
+  const entry = src === null ? undefined : index.find((r) => sameOriginSrc(r.src, origin) === src)
+  if (entry === undefined) return '/replays'
+  const rest = new URLSearchParams()
+  for (const key of KEPT) {
+    const value = params.get(key)
+    if (value !== null) rest.set(key, value)
+  }
+  return `${replayHref(entry.id)}${rest.size === 0 ? '' : readableQuery(rest)}`
 }
 
 export interface Replay {
