@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from netzero import paths as nz_paths
 from netzero.bench.lane import BenchLane, QuietGate
 from netzero.bench.probe import probe
-from netzero.errors import EnvError, NetzeroError
+from netzero.errors import EnvError, LlmFatalError, NetzeroError
 from netzero.events import (
     ImportProbe,
     LlmUsageData,
@@ -184,6 +184,8 @@ async def triage_stage(
         if shortlist:
             try:
                 ratings = await ranker(shortlist)  # type: ignore[misc]
+            except LlmFatalError:
+                raise
             except Exception as exc:  # the heuristic ranking stands
                 ctx.log("llm", f"triage ranking failed, using heuristics: {exc}", level="warn")
         ranked = triage.apply_ratings(items, ratings, max_items=s.max_functions)

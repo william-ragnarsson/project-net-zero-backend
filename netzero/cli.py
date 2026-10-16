@@ -528,8 +528,11 @@ def doctor(
     line(major >= 20 or None, "node", node or "not found (only needed to build the web ui)")
     built = (paths.WEB_DIST / "index.html").is_file()
     line(built or None, "web ui", "built" if built else "not built: make web")
-    key = settings.has_api_key
-    line(key or None, "api key", "set" if key else "not set: demo and replay modes only")
+    if settings.has_api_key:
+        ok, detail = _key_check(settings)
+        line(ok, "api key", detail)
+    else:
+        line(None, "api key", "not set: demo and replay modes only")
     cassettes = paths.CASSETTES_DIR.is_dir()
     line(cassettes or None, "demo", "cassettes found" if cassettes else "no cassettes")
     if settings.database_url:
@@ -561,6 +564,29 @@ def doctor(
             console.print(f"[grey62]{SUDOERS_HINT}[/]", soft_wrap=True)
     if failed:
         raise typer.Exit(1)
+
+
+def _key_check(settings) -> tuple[bool | None, str]:
+    """Count tokens with the key, which costs nothing; ``None`` when the API did not say."""
+    import asyncio
+
+    from netzero.errors import LlmError, LlmFatalError
+    from netzero.llm.client import LlmClient
+
+    async def check() -> list[str]:
+        client = LlmClient(settings.model_copy(update={"cassette_mode": "off"}))
+        try:
+            return await client.check_key()
+        finally:
+            await client.aclose()
+
+    try:
+        models = asyncio.run(check())
+    except LlmFatalError as exc:
+        return False, exc.message
+    except LlmError as exc:
+        return None, f"could not check: {exc.message}"
+    return True, f"accepted for {', '.join(models)}"
 
 
 def _db_check(url: str) -> tuple[bool, str]:

@@ -15,9 +15,11 @@ import pytest
 
 from netzero import paths as nz_paths
 from netzero.llm.cassette import CassetteEntry, CassetteKey, CassetteStore
+from netzero.llm.client import LlmClient
 from netzero.pipeline import flow
 from netzero.pipeline.grammar import assert_grammar
 from netzero.pipeline.orchestrator import RunManager
+from tests.fake_anthropic import WORKSPACE, api_error
 from tests.integration.helpers import DEMO_AUTO, event_lines, events
 
 pytestmark = [
@@ -268,3 +270,43 @@ async def test_optimizes_merges_and_packages(manager_factory, demo_repo: Path):
         assert "seen = set()" in zf.read("demo-repo/pkg/text.py").decode()
         report = io.TextIOWrapper(zf.open("netzero-report.json")).read()
         assert '"outcome": "accepted"' in report
+
+
+class RejectingSdk:
+    """Answers every request the way the API answers a key with no workspace."""
+
+    def __init__(self):
+        self.messages = self
+        self.calls = 0
+
+    def stream(self, **kwargs):
+        self.calls += 1
+        raise api_error(400, WORKSPACE)
+
+
+@pytest.mark.parametrize(
+    "triage_llm_top, stage", [(60, "triaging"), (0, "optimizing")], ids=["triage", "tests"]
+)
+async def test_a_rejected_key_fails_the_run_at_the_first_call(
+    manager_factory, demo_repo: Path, monkeypatch: pytest.MonkeyPatch, triage_llm_top, stage
+):
+    sdk = RejectingSdk()
+    monkeypatch.setattr(
+        flow,
+        "llm_client",
+        lambda ctx: LlmClient(ctx.settings.model_copy(update={"cassette_mode": "off"}), sdk=sdk),
+    )
+    m: RunManager = manager_factory(flow.run_pipeline, triage_llm_top=triage_llm_top)
+    s = await m.create(DEMO_AUTO)
+    await asyncio.wait_for(m.wait(s.id), 300)
+    assert_grammar(event_lines(m, s.id))
+    evs = events(m, s.id)
+    assert [e["type"] for e in evs[-2:]] == ["run.state_changed", "run.failed"]
+    failed = evs[-1]["data"]
+    assert failed["stage"] == stage
+    assert failed["error"]["kind"] == "llm_error"
+    assert failed["error"]["message"] == f"Anthropic API error (400): {WORKSPACE}"
+    assert sdk.calls == 1
+    # with no triage call, the first function fails and the second never starts
+    done = of(evs, "function.completed")
+    assert [d["data"]["outcome"] for d in done] == (["failed"] if stage == "optimizing" else [])

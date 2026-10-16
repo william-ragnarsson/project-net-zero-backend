@@ -14,15 +14,15 @@ import pytest
 from pydantic import SecretStr
 
 from netzero.config import Settings, StageModelConfig
-from netzero.errors import LlmError
+from netzero.errors import LlmError, LlmFatalError
 from netzero.events import LlmUsageData
 from netzero.llm import client as llm
 from netzero.llm.cassette import CassetteKey, CassetteStore
 from netzero.llm.client import LlmClient, request_params
 from netzero.llm.models import TestFileOut, TriageOut
 from netzero.llm.prompts import Request
+from tests.fake_anthropic import KEY, NO_CREDIT, WORKSPACE, TokenCounter, api_error
 
-KEY = "sk-ant-test-0123456789"
 REQ = Request(
     system="sys",
     messages=[{"role": "user", "content": [{"type": "text", "text": "write tests"}]}],
@@ -332,6 +332,94 @@ async def test_connection_errors_become_llm_errors(live: Settings) -> None:
     client = LlmClient(live, sdk=FakeSdk(anthropic.APIConnectionError(request=None)))  # type: ignore[arg-type]
     with pytest.raises(LlmError, match="APIConnectionError"):
         await client.call("tests", REQ, TESTS_KEY)
+
+
+# -- errors every later call would repeat ------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        api_error(401, "invalid x-api-key", "authentication_error"),
+        api_error(402, "payment required", "billing_error"),
+        api_error(403, "this key may not use this model", "permission_error"),
+        api_error(400, WORKSPACE),
+        api_error(400, NO_CREDIT),
+    ],
+    ids=["401", "402", "403", "workspace", "credit"],
+)
+async def test_errors_every_call_would_repeat_are_fatal(
+    live: Settings, error: anthropic.APIStatusError
+) -> None:
+    sdk = FakeSdk(error)
+    client = LlmClient(live, sdk=sdk)
+    with pytest.raises(LlmFatalError) as exc:
+        await client.call("tests", REQ, TESTS_KEY)
+    assert not isinstance(exc.value, LlmError)  # step and function handlers let it through
+    assert exc.value.kind == "llm_error"
+    text = error.body["error"]["message"]  # type: ignore[index]
+    assert exc.value.message == f"Anthropic API error ({error.status_code}): {text}"
+    assert exc.value.__cause__ is None
+    # later calls fail the same way without another request
+    with pytest.raises(LlmFatalError, match=str(error.status_code)):
+        await client.call("rewrite", REQ, CassetteKey("rewrite", "pkg.mod:f", "A", 0))
+    assert len(sdk.calls) == 1
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        api_error(400, "max_tokens: Field required"),
+        api_error(404, "model: claude-nope", "not_found_error"),
+        api_error(429, "rate limited", "rate_limit_error"),
+        api_error(500, "internal error", "api_error"),
+        api_error(529, "Overloaded", "overloaded_error"),
+    ],
+    ids=["400", "404", "429", "500", "529"],
+)
+async def test_other_api_errors_fail_only_the_call(
+    live: Settings, error: anthropic.APIStatusError
+) -> None:
+    sdk = FakeSdk(error, message())
+    client = LlmClient(live, sdk=sdk)
+    with pytest.raises(LlmError) as exc:
+        await client.call("tests", REQ, TESTS_KEY)
+    assert str(error.status_code) in exc.value.message
+    assert (await client.call("tests", REQ, TESTS_KEY)).parsed == TestFileOut(**GOOD)
+    assert len(sdk.calls) == 2
+
+
+async def test_calls_queued_behind_a_fatal_error_never_reach_the_api(live: Settings) -> None:
+    sdk = FakeSdk(api_error(400, WORKSPACE), delay=0.01)
+    client = LlmClient(live.model_copy(update={"llm_concurrency": 1}), sdk=sdk)
+    results = await asyncio.gather(
+        *(client.call("tests", REQ, TESTS_KEY) for _ in range(4)), return_exceptions=True
+    )
+    assert all(isinstance(r, LlmFatalError) for r in results)
+    assert len(sdk.calls) == 1
+
+
+async def test_check_key_counts_tokens_once_per_model(live: Settings) -> None:
+    stages = live.stages.model_copy(update={"rewrite": StageModelConfig(model="claude-sonnet-5-5")})
+    sdk = TokenCounter()
+    client = LlmClient(live.model_copy(update={"stages": stages}), sdk=sdk)
+    models = await client.check_key()
+    assert sorted(models) == ["claude-haiku-4-5", "claude-sonnet-5-5"]
+    assert sdk.models == models
+    assert sdk.options == {"max_retries": 1}
+
+
+@pytest.mark.parametrize(
+    "error, raised",
+    [(api_error(400, WORKSPACE), LlmFatalError), (api_error(429, "rate limited"), LlmError)],
+)
+async def test_check_key_raises_the_api_message(
+    live: Settings, error: anthropic.APIStatusError, raised: type[Exception]
+) -> None:
+    client = LlmClient(live, sdk=TokenCounter(error))
+    with pytest.raises(raised) as exc:
+        await client.check_key()
+    assert exc.value.message.endswith(error.body["error"]["message"])  # type: ignore[attr-defined, index]
 
 
 async def test_no_api_key_is_an_llm_error(settings: Settings) -> None:

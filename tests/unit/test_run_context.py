@@ -7,7 +7,7 @@ from collections.abc import Callable
 
 import pytest
 
-from netzero.errors import CloneError
+from netzero.errors import CloneError, LlmFatalError
 from netzero.events import (
     DATA_CLASSES,
     TERMINAL_STATES,
@@ -274,6 +274,27 @@ async def test_function_scope_exception_becomes_failed(ctx: RunContext) -> None:
     )
     d = last(ctx, "function.completed").data  # type: ignore[attr-defined]
     assert (d.outcome, d.reason) == ("failed", "ValueError: bad candidate")
+    assert check_grammar(read_lines(ctx), complete=False) == []
+
+
+async def test_function_scope_fails_the_function_then_lets_a_fatal_error_through(
+    ctx: RunContext,
+) -> None:
+    """A rejected key would fail every later function too: the run has to end instead."""
+    await to_optimizing(ctx)
+    with pytest.raises(LlmFatalError):
+        async with ctx.function(function_info(FID), index=0, total=2):
+            async with ctx.step(
+                "function.tests.write.started", {"kind": "write"}, function_id=FID, attempt=0
+            ):
+                raise LlmFatalError("Anthropic API error (401): invalid x-api-key")
+    assert types_of(ctx)[-3:] == ["function.tests.write.completed", "log", "function.completed"]
+    tests = last(ctx, "function.tests.write.completed").data  # type: ignore[attr-defined]
+    assert tests.error == ErrorInfo(
+        kind="llm_error", message="Anthropic API error (401): invalid x-api-key"
+    )
+    d = last(ctx, "function.completed").data  # type: ignore[attr-defined]
+    assert (d.outcome, d.reason) == ("failed", "Anthropic API error (401): invalid x-api-key")
     assert check_grammar(read_lines(ctx), complete=False) == []
 
 
