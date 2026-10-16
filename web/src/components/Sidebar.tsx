@@ -1,8 +1,9 @@
 import { useId, type ReactNode } from 'react'
 import { Link, NavLink } from 'react-router'
-import { useHealth, useRuns } from '../api/queries'
+import { useHealth, useRuns, useShowcaseKind } from '../api/queries'
 import { formatWhen } from '../lib/format'
 import { recentRuns, repoOf, runStatus, runValue, TONE_CLASS, type StatusTone } from '../lib/runs'
+import { SHOWCASE, startLabel, type ShowcaseKind } from '../showcase/config'
 import { buttonClass } from '../ui/Button'
 import { Icon, type IconName } from '../ui/Icon'
 import { Logo } from './Logo'
@@ -16,6 +17,12 @@ const DOT: Record<StatusTone, string> = {
   caution: 'bg-caution motion-safe:animate-breathe',
   fail: 'bg-fail',
   neutral: 'bg-control',
+}
+
+const KIND_LABEL: Record<ShowcaseKind, string> = {
+  sample: 'Sample runs',
+  mixed: 'Recorded and sample runs',
+  recorded: 'Recorded runs',
 }
 
 const rowClass = (isActive: boolean) =>
@@ -40,6 +47,7 @@ export function Sidebar() {
   const runs = useRuns().data ?? []
   const health = useHealth()
   const offline = health.isError
+  const kind = useShowcaseKind()
   const recent = recentRuns(runs, RECENT)
   // the sidebar is mounted twice below 1024px (aside and drawer), so ids must be unique
   const recentId = useId()
@@ -52,7 +60,7 @@ export function Sidebar() {
       <Link to="/new" className={`${buttonClass('primary', 'md')} mt-5 w-full justify-between`}>
         <span className="flex items-center gap-1.5">
           <Icon name="plus" />
-          New run
+          {startLabel('New run')}
         </span>
         <kbd aria-hidden="true" className="rounded bg-white/15 px-1.5 font-sans text-xs text-white/80">
           N
@@ -69,9 +77,12 @@ export function Sidebar() {
         <NavItem to="/replays" icon="replays">
           Replays
         </NavItem>
-        <NavItem to="/history" icon="history">
-          History
-        </NavItem>
+        {/* history needs the server's database; the showcase has neither */}
+        {!SHOWCASE && (
+          <NavItem to="/history" icon="history">
+            History
+          </NavItem>
+        )}
       </nav>
 
       {recent.length > 0 && (
@@ -109,9 +120,11 @@ export function Sidebar() {
       )}
 
       <div className="mt-auto space-y-2 pt-4">
-        <NavItem to="/settings" icon="settings">
-          Settings
-        </NavItem>
+        {!SHOWCASE && (
+          <NavItem to="/settings" icon="settings">
+            Settings
+          </NavItem>
+        )}
         <div className="flex items-center gap-2.5 rounded-lg border border-line bg-surface px-3 py-2">
           <span
             aria-hidden="true"
@@ -119,10 +132,16 @@ export function Sidebar() {
           />
           <div className="min-w-0 leading-tight">
             <p className={`text-sm font-medium ${offline ? 'text-fail' : 'text-ink'}`}>
-              {offline ? 'Server offline' : 'Local server'}
+              {SHOWCASE ? 'Showcase' : offline ? 'Server offline' : 'Local server'}
             </p>
             <p className="truncate text-xs text-ink-3">
-              {offline ? 'Start it with make run' : health.data === undefined ? 'Connecting' : `Version ${health.data.version}`}
+              {SHOWCASE
+                ? `${kind === undefined ? 'Played back' : KIND_LABEL[kind]}${health.data === undefined ? '' : ` · v${health.data.version}`}`
+                : offline
+                  ? 'Start it with make run'
+                  : health.data === undefined
+                    ? 'Connecting'
+                    : `Version ${health.data.version}`}
             </p>
           </div>
         </div>

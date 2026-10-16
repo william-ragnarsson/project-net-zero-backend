@@ -1,7 +1,9 @@
 // The REST half of the backend (README "HTTP API"). The event stream itself is read by the store.
+// In the showcase build the GETs read static files instead and everything else is refused.
 import type { ApiError as ApiErrorBody, Capabilities, CreateRunRequest, Health, RunDetail, RunSummary } from '../gen/events'
+import { OFFLINE_TEXT, SHOWCASE, SHOWCASE_META, showcasePath, type ShowcaseMeta } from '../showcase/config'
 
-export type ApiErrorCode = ApiErrorBody['code'] | 'http' | 'network'
+export type ApiErrorCode = ApiErrorBody['code'] | 'http' | 'network' | 'showcase'
 
 export class ApiError extends Error {
   /** 0 for a network failure. */
@@ -36,7 +38,12 @@ interface RequestInit {
   signal?: AbortSignal | undefined
 }
 
+/** In the showcase, an /api path becomes its static file, or null when it has none. */
+const resolve = (path: string): string | null => (SHOWCASE && path.startsWith('/api/') ? showcasePath(path) : path)
+
 async function send(path: string, init: RequestInit = {}): Promise<Response> {
+  const url = (init.method ?? 'GET') === 'GET' ? resolve(path) : SHOWCASE ? null : path
+  if (url === null) throw new ApiError(405, 'showcase', 'This site only plays back finished runs. Run net-zero locally to do this.')
   const options: globalThis.RequestInit = { method: init.method ?? 'GET' }
   if (init.signal !== undefined) options.signal = init.signal
   if (init.body !== undefined) {
@@ -45,11 +52,11 @@ async function send(path: string, init: RequestInit = {}): Promise<Response> {
   }
   let res: Response
   try {
-    res = await fetch(path, options)
+    res = await fetch(url, options)
   } catch (e) {
     // an abort is the caller's own doing, not an outage
     if (init.signal?.aborted === true) throw e
-    throw new ApiError(0, 'network', 'Can’t reach the net-zero server')
+    throw new ApiError(0, 'network', OFFLINE_TEXT)
   }
   if (!res.ok) {
     let body: unknown = null
@@ -89,11 +96,20 @@ export const selectFunctions = (id: string, ids: string[]) =>
 /** Blocks for up to about 5s while the run winds down; a finished run answers 200 as well. */
 export const cancelRun = (id: string) => request<RunSummary>(`/api/runs/${enc(id)}/cancel`, { method: 'POST' })
 
-export const eventsUrl = (id: string) => `/api/runs/${enc(id)}/events.jsonl`
+export const eventsUrl = (id: string) => {
+  const path = `/api/runs/${enc(id)}/events.jsonl`
+  return resolve(path) ?? path
+}
 
 export const eventStreamUrl = (id: string, after: number) => `/api/runs/${enc(id)}/events?after=${after}`
 
 export async function fetchEventsJsonl(id: string, signal?: AbortSignal): Promise<string> {
   const res = await send(eventsUrl(id), { signal })
   return res.text()
+}
+
+/** Which of the showcase's runs are samples, and the static copy of each artifact. */
+export async function getShowcaseMeta(signal?: AbortSignal): Promise<ShowcaseMeta> {
+  const res = await send(SHOWCASE_META, { signal })
+  return (await res.json()) as ShowcaseMeta
 }

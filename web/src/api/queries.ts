@@ -2,6 +2,7 @@
 import { useMutation, useQueries, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import type { CreateRunRequest, RunDetail, RunEvent, RunSummary } from '../gen/events'
 import { isActive, isTerminal } from '../lib/runs'
+import { SHOWCASE, showcaseKind, type ShowcaseKind } from '../showcase/config'
 import { parseReplay } from '../sources/replayFile'
 import {
   cancelRun,
@@ -10,6 +11,7 @@ import {
   getCapabilities,
   getHealth,
   getRun,
+  getShowcaseMeta,
   isApiError,
   listRuns,
   selectFunctions,
@@ -27,7 +29,8 @@ export const useHealth = () =>
   useQuery({
     queryKey: HEALTH_KEY,
     queryFn: ({ signal }) => getHealth(signal),
-    refetchInterval: 10_000,
+    // a static file never goes offline
+    refetchInterval: SHOWCASE ? false : 10_000,
     retry: false,
     refetchOnWindowFocus: true,
   })
@@ -105,4 +108,33 @@ export function useCancel(id: string) {
     onError: (e) => checkHealth(qc, e),
     onSettled: () => settle(qc, id),
   })
+}
+
+/**
+ * Turns an artifact URL from the log into a download link. The server answers the URL as is;
+ * the showcase has a static copy of some files and none of the zip, so a link without one
+ * resolves to undefined and is not drawn.
+ */
+export function useArtifactHref(): (url: string | undefined) => string | undefined {
+  const meta = useShowcaseMeta().data
+  if (!SHOWCASE) return (url) => url
+  const map = meta?.artifacts ?? {}
+  return (url) => (url === undefined ? undefined : map[url])
+}
+
+function useShowcaseMeta() {
+  return useQuery({
+    queryKey: ['showcase'],
+    queryFn: ({ signal }) => getShowcaseMeta(signal),
+    enabled: SHOWCASE,
+    staleTime: Infinity,
+  })
+}
+
+/** Whether the showcase's runs are samples, recordings or both; undefined outside it and while loading. */
+export function useShowcaseKind(): ShowcaseKind | undefined {
+  const meta = useShowcaseMeta().data
+  const runs = useRuns().data
+  if (meta === undefined || runs === undefined) return undefined
+  return showcaseKind(meta.samples.length, runs.length)
 }

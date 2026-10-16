@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router'
 import { useHealthEdges } from '../api/useHealthEdges'
 import { useShortcuts } from '../lib/useShortcuts'
+import { SHOWCASE } from '../showcase/config'
 import { Button } from '../ui/Button'
 import { Icon } from '../ui/Icon'
 import { Sheet } from '../ui/Sheet'
 import { Logo } from './Logo'
+import { ShowcaseBanner } from './ShowcaseBanner'
 import { Sidebar } from './Sidebar'
 
 const WIDE = '(min-width: 1024px)'
@@ -53,6 +55,7 @@ export function AppShell() {
         <Sidebar />
       </Sheet>
       <div className="lg:pl-60">
+        {SHOWCASE && <ShowcaseBanner />}
         <main id="main" tabIndex={-1} className="focus:outline-none">
           <Outlet />
         </main>

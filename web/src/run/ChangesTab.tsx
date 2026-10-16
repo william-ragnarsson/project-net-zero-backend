@@ -1,6 +1,7 @@
 import '../tree/tree.css'
 import { useMemo } from 'react'
 import { useSearchParams } from 'react-router'
+import { useArtifactHref } from '../api/queries'
 import { plainReason } from '../components/Co2'
 import type { FunctionOutcome } from '../gen/events'
 import { formatPct } from '../lib/format'
@@ -37,6 +38,7 @@ function rowsOf(m: RunModel): Finished[] {
 export function ChangesTab({ model: m }: { model: RunModel }) {
   const [params] = useSearchParams()
   const rows = useMemo(() => rowsOf(m), [m])
+  const href = useArtifactHref()
   if (rows.length === 0) return <EmptyState title="No finished functions yet" />
 
   const fn = params.get('fn')
@@ -51,7 +53,7 @@ export function ChangesTab({ model: m }: { model: RunModel }) {
         const accepted = o.outcome === 'accepted'
         const module =
           m.triage.find((t) => t.function_id === f.functionId)?.module ?? f.started?.info.module ?? null
-        const diffUrl = diffs.find((d) => d.function_id === f.functionId)?.url
+        const diffUrl = href(diffs.find((d) => d.function_id === f.functionId)?.url)
         return (
           // keyed with `pinned` so a new ?fn= reopens the right row even after the user toggled one
           <details key={`${f.functionId}:${pinned ? fn : ''}`} open={pinned ? f.functionId === fn : f.functionId === firstAccepted}>

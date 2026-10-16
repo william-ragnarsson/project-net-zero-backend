@@ -277,6 +277,7 @@ Run commands as `uv run netzero <command>`. Every command takes `--help`.
 | `replay PATH` | `--speed` (4.0; 0 = instant, gaps capped at 1.5 s), `--check`, `-v` | Plays an `events.jsonl` in the terminal. `--check` only validates it against the event grammar. |
 | `fake` | `-o/--out`, `--scenario demo\|short\|fail_env`, `--seed`, `--speed`, `-v` | Generates a scripted run (no git, uv or LLM) in virtual time and checks its grammar. This is the FakePipeline the UI develops against. |
 | `record` | `--cassettes`, `--select`, `-o/--out` (`web/public/replays/demo.events.jsonl`), `-v` | Runs the demo, copies its events to `--out` and adds an entry to `index.json` next to it. Without `--cassettes` it replays the hand-written cassettes and needs no key. With `--cassettes` it calls Claude and overwrites the matching cassette files (needs a key). |
+| `showcase [RUN...]` | `--samples`, `-o/--out` (`web/public/showcase`) | Bundles finished runs (`runs/<id>` folders or `events.jsonl` files) as static files for the showcase build. `--samples` adds the sample runs. It replaces the output folder, so list every run you want shown. See [Showcase site](#showcase-site). |
 | `demo-cassettes` | | Deletes `examples/demo-repo/.netzero-cassettes` and rebuilds it from `examples/demo-stories`. |
 | `calibrate` | `--force` | Measures `P_core` with powermetrics on macOS (about 10 s, needs passwordless sudo). On failure it prints the sudoers line to add. |
 | `doctor` | `--refresh` (re-probe power) | Required checks: git, uv, Python 3.12. Advisory checks: node 20+, built web UI, API key, demo cassettes, and how CO2 will be measured. |
@@ -289,8 +290,8 @@ Run commands as `uv run netzero <command>`. Every command takes `--help`.
 Exit codes of `run`: **0** completed; **1** failed, or rejected before
 starting (no API key, a run already active, invalid URL); **2** bad
 arguments (both or neither of URL and `--demo`); **130** cancelled or
-interrupted. `record`, `fake`, `replay --check`, `doctor`, `calibrate`,
-`demo-cassettes` and `export-schema --check` exit 1 on failure; `fake` exits
+interrupted. `record`, `fake`, `replay --check`, `showcase`, `doctor`,
+`calibrate`, `demo-cassettes` and `export-schema --check` exit 1 on failure; `fake` exits
 2 on a bad scenario or speed.
 
 ## HTTP API
@@ -480,6 +481,43 @@ To work on the UI: `make run` serves the production build via `netzero
 serve`; `make dev` runs `netzero serve --reload` plus the Vite dev server,
 which proxies `/api`; `NETZERO_FAKE_PIPELINE=1 make dev` gives scripted runs
 with no key, git or uv work.
+
+## Showcase site
+
+The showcase is a static build of the web UI that plays back finished runs, so
+you can send someone a link. It has no backend. It can't start a run, holds no
+API key, and serves only the files you bundle into it.
+
+1. Record runs on your machine with `make run` or `uv run netzero run`. Only
+   finished runs whose log passes the grammar check can be bundled.
+2. Bundle them with `uv run netzero showcase runs/<id> runs/<id> ...`. This
+   replaces `web/public/showcase/` with each run's log, its `run.json`, the
+   patch and the per-function diffs. It leaves out the zip because the zip
+   holds the whole repository. Add `--samples` to bundle the sample runs too.
+3. Check the result with `npm --prefix web run build:showcase && npm --prefix
+   web run preview`.
+4. Commit `web/public/showcase/` and import the repository into Vercel with
+   the Root Directory set to `web`. `web/vercel.json` sets the build command
+   and the SPA rewrites.
+
+The showcase build (`VITE_SHOWCASE=1`, `web/src/showcase/config.ts`) reads
+those files instead of calling `/api`, and any request that would write fails
+before it leaves the browser. In this build `/new` explains how to run net-zero
+locally, a banner says what the runs are, and the History and Settings pages
+are hidden.
+
+**Sample runs**: `--samples` runs the FakePipeline over a fixed list of runs
+(`SAMPLES` in `netzero/showcase.py`), in virtual time, so the dashboard and
+runs list have something in them before you record real runs. Their
+repositories are made up, under the GitHub owner `net-zero-samples`, and their
+numbers come from the scripted fake, not from a measurement. `showcase.json`
+lists them, and the banner, sidebar and page headers call them sample runs. The
+committed showcase currently holds only samples.
+
+**What gets published**: the whole event log of every bundled run, including
+the repository URL, the original and rewritten function source and the test
+output. `netzero showcase` refuses a log that contains `sk-ant-` and warns
+when a log mentions your home folder. Read those warnings before you deploy.
 
 ## Development
 

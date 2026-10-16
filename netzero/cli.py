@@ -182,31 +182,14 @@ def fake(
 
 
 async def _fake_run(runs_dir: Path, scenario: str, seed: int, speed: float) -> list[str]:
-    import asyncio
     import time
 
-    from netzero.api.schemas import CreateRunRequest
-    from netzero.config import Settings
-    from netzero.pipeline.fake import FakePipeline
-    from netzero.pipeline.orchestrator import RunManager
+    from netzero.pipeline.fake import FakePipeline, run_fake
     from netzero.pipeline.store import read_complete_lines
 
-    loop = asyncio.get_running_loop()
-    epoch_ms = int(time.time() * 1000)
-    settings = Settings(_env_file=None, runs_dir=runs_dir, fake_pipeline=True)  # type: ignore[call-arg]
-    manager = RunManager(
-        settings,
-        pipeline=FakePipeline(speed, scenario=scenario, seed=seed),  # type: ignore[arg-type]
-        power=lambda: None,  # the fake detects its own power source
-        clock=lambda: epoch_ms + int(loop.time() * 1000),
-    )
-    manager.start()
-    try:
-        summary = await manager.create(CreateRunRequest(demo=True, auto_select=True))
-        await manager.wait(summary.id)
-    finally:
-        await manager.shutdown(timeout=2)
-    lines, _ = read_complete_lines(manager.store.paths(summary.id).events)
+    pipeline = FakePipeline(speed, scenario=scenario, seed=seed)  # type: ignore[arg-type]
+    events = await run_fake(runs_dir, pipeline, epoch_ms=int(time.time() * 1000))
+    lines, _ = read_complete_lines(events)
     return lines
 
 
@@ -432,6 +415,41 @@ def _add_replay(out: Path, entry: dict) -> None:
     entry = ReplayRef.model_validate(entry).model_dump(mode="json")
     rest = [r for r in current if isinstance(r, dict) and r.get("id") != entry["id"]]
     index.write_text(json.dumps([entry, *rest], indent=2, ensure_ascii=False) + "\n", "utf-8")
+
+
+@app.command()
+def showcase(
+    runs: list[Path] = typer.Argument(
+        None, exists=True, help="Finished run folders (runs/<id>) or events.jsonl files."
+    ),
+    samples: bool = typer.Option(
+        False, "--samples", help="Add the made-up sample runs, which the UI labels as samples."
+    ),
+    out: Path = typer.Option(paths.WEB_PUBLIC_SHOWCASE, "--out", "-o", file_okay=False),
+) -> None:
+    """Bundle finished runs as static files for the showcase build of the web UI."""
+    import tempfile
+
+    from netzero.showcase import ShowcaseError, build, make_samples
+
+    if not runs and not samples:
+        err.print("give run folders, --samples, or both")
+        raise typer.Exit(2)
+    try:
+        with tempfile.TemporaryDirectory(prefix="netzero-samples-") as tmp:
+            made = make_samples(Path(tmp)) if samples else []
+            bundled = build(runs or [], out, samples=made)
+    except ShowcaseError as exc:
+        err.print(f"[red]✗[/] {exc}")
+        raise typer.Exit(1) from None
+    for b in bundled:
+        kind = " (sample)" if b.sample else ""
+        console.print(f"  {b.id}{kind}: {b.events} events, {b.artifacts} artifact files")
+        for warning in b.warnings:
+            err.print(f"  [yellow]warning:[/] {warning}")
+    console.print(
+        f"wrote {rel(out)}: {len(bundled)} runs; build with `npm --prefix web run build:showcase`"
+    )
 
 
 @app.command("demo-cassettes")

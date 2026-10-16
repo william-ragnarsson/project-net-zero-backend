@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { Co2 } from '../components/Co2'
 import { Logo } from '../components/Logo'
 import { useTitle } from '../lib/useTitle'
+import { startLabel } from '../showcase/config'
 import { useReplayIndex } from '../sources/queries'
 import { replayHref } from '../sources/replay'
 import { Badge } from '../ui/Badge'
@@ -11,6 +12,8 @@ import { buttonClass } from '../ui/Button'
 import { Icon, type IconName } from '../ui/Icon'
 
 const COLUMN = 'mx-auto w-full max-w-[1120px] px-4 sm:px-8'
+
+const START = startLabel('Start a run')
 
 const SECTIONS = [
   { id: 'how', label: 'How it works' },
@@ -111,7 +114,7 @@ export function LandingPage() {
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link to="/new" className={`${buttonClass('primary', 'md')} h-11 px-5 text-md`}>
-                Start a run
+                {START}
                 <Icon name="arrow-right" />
               </Link>
               <Link to={replay} className={`${buttonClass('secondary', 'md')} h-11 px-5 text-md`}>
@@ -231,7 +234,7 @@ export function LandingPage() {
                   to="/new"
                   className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-white px-5 text-md font-medium text-accent transition-colors duration-150 hover:bg-accent-tint"
                 >
-                  Start a run
+                  {START}
                 </Link>
                 <Link
                   to={replay}
@@ -275,7 +278,7 @@ function NavBar() {
             Open the app
           </Link>
           <Link to="/new" className={buttonClass('primary', 'sm')}>
-            Start a run
+            {START}
           </Link>
           <button
             type="button"
@@ -475,7 +478,7 @@ const FOOTER: { title: string; links: { label: string; to: string; anchor?: bool
     title: 'App',
     links: [
       { label: 'Dashboard', to: '/dashboard' },
-      { label: 'New run', to: '/new' },
+      { label: startLabel('New run'), to: '/new' },
       { label: 'Runs', to: '/runs' },
       { label: 'Replays', to: '/replays' },
     ],
