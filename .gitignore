@@ -43,3 +43,7 @@ web/playwright-report/
 *~
 .DS_Store
 Thumbs.db
+
+.agents/
+.claude/skills/
+skills-lock.json
