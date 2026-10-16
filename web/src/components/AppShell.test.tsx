@@ -57,10 +57,10 @@ function renderShell() {
   client.setQueryData(['health'], { ok: true, version: '0.2.0' })
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/dashboard']}>
         <Routes>
           <Route element={<AppShell />}>
-            <Route index element={<PageHeader title="Dashboard" />} />
+            <Route path="dashboard" element={<PageHeader title="Dashboard" />} />
           </Route>
         </Routes>
       </MemoryRouter>
@@ -108,6 +108,8 @@ describe('AppShell', () => {
     renderShell()
     const nav = screen.getByRole('navigation', { name: 'Main' })
     for (const name of ['Dashboard', 'Runs', 'Replays']) expect(within(nav).getByRole('link', { name })).toBeTruthy()
+    // `/` is the landing page now, so the app's home is the dashboard
+    expect(within(nav).getByRole('link', { name: 'Dashboard' }).getAttribute('aria-current')).toBe('page')
     expect(screen.getByRole('link', { name: 'New run' }).getAttribute('href')).toBe('/new')
     expect(screen.getByRole('link', { name: 'Settings' })).toBeTruthy()
 

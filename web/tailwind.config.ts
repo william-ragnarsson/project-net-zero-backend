@@ -26,9 +26,13 @@ export default {
       accent: v('accent'),
       'accent-hover': v('accent-hover'),
       'accent-tint': v('accent-tint'),
+      'accent-soft': v('accent-soft'),
       fail: v('fail'),
       'fail-tint': v('fail-tint'),
+      'fail-soft': v('fail-soft'),
       caution: v('caution'),
+      'caution-tint': v('caution-tint'),
+      'caution-soft': v('caution-soft'),
       'code-keyword': v('code-keyword'),
       'code-string': v('code-string'),
       scrim: v('scrim'),
@@ -43,12 +47,21 @@ export default {
       base: ['14px', '21px'],
       md: ['15px', '22px'],
       lg: ['20px', '28px'],
+      title: ['24px', '30px'],
       xl: ['28px', '34px'],
+      '2xl': ['36px', '42px'],
+      display: ['56px', '60px'],
       code: ['12px', '18px'],
     },
-    fontWeight: { normal: '400', medium: '500' },
-    borderRadius: { none: '0', sm: '4px', DEFAULT: '6px', md: '6px', lg: '8px', full: '9999px' },
-    boxShadow: { none: 'none', float: '0 8px 24px rgba(0, 0, 0, 0.08)' },
+    fontWeight: { normal: '400', medium: '500', semibold: '600' },
+    borderRadius: { none: '0', sm: '4px', DEFAULT: '6px', md: '6px', lg: '8px', xl: '12px', '2xl': '16px', full: '9999px' },
+    boxShadow: {
+      none: 'none',
+      card: '0 1px 2px rgba(29, 29, 27, 0.04)',
+      float: '0 8px 24px rgba(0, 0, 0, 0.08)',
+      // the landing page's product picture
+      lift: '0 1px 2px rgba(29, 29, 27, 0.04), 0 24px 48px -16px rgba(31, 64, 46, 0.18)',
+    },
     extend: {
       // `colors` has no gray, so without these a bare `border`/`divide-*` falls back to currentColor
       // (ink) and a bare `ring` to Tailwind's blue.

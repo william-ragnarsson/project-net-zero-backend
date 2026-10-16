@@ -1,6 +1,7 @@
 import { createBrowserRouter, useParams } from 'react-router'
 import { AppShell } from './components/AppShell'
 import { DashboardPage } from './routes/DashboardPage'
+import { LandingPage } from './routes/LandingPage'
 import { NewRunPage } from './routes/NewRunPage'
 import { NotFoundPage } from './routes/NotFoundPage'
 import { ReplayPage } from './routes/ReplayPage'
@@ -24,6 +25,8 @@ function KeyedReplayPage() {
 }
 
 export const router = createBrowserRouter([
+  // the front door, outside the shell
+  { path: '/', element: <LandingPage />, errorElement: <RouteError /> },
   {
     element: <AppShell />,
     children: [
@@ -31,7 +34,7 @@ export const router = createBrowserRouter([
         // inside the shell, so a page that throws keeps the sidebar
         errorElement: <RouteError />,
         children: [
-          { index: true, element: <DashboardPage /> },
+          { path: 'dashboard', element: <DashboardPage /> },
           { path: 'new', element: <NewRunPage /> },
           { path: 'runs', element: <RunsPage /> },
           { path: 'runs/:runId', element: <KeyedRunPage /> },

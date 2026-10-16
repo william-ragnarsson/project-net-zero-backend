@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { FunctionRecord, RunSummary } from '../gen/events'
-import { formatGrams } from '../lib/format'
+import { formatGrams, NONE } from '../lib/format'
 import { selectImpact } from '../lib/runs'
 import { DashboardPage } from './DashboardPage'
 
@@ -115,37 +115,46 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
+const region = (name: string) => screen.getByRole('region', { name })
+const valueOf = (name: string) => region(name).querySelector('p.text-xl')?.textContent
+
 describe('DashboardPage', () => {
   it('shows the selectImpact total and no other', async () => {
     stubServer()
-    const { container } = renderDashboard(RUNS)
+    renderDashboard(RUNS)
     const impact = selectImpact(RUNS)
     // newest textkit + geo-utils; the running, cancelled, demo and older textkit runs do not count
     expect(impact).toMatchObject({ functions: 10, repositories: 2, excludedDemo: 1 })
 
-    expect(container.querySelector('p.text-xl')?.textContent).toBe(`${formatGrams(impact.grams)} CO2e`)
+    expect(valueOf('CO2e saved')).toBe(formatGrams(impact.grams))
     expect(formatGrams(impact.grams)).toBe('155.0 g')
-    expect(screen.getByText('saved per 1M calls of each improved function')).toBeTruthy()
-    expect(screen.getByText('From 10 functions improved in 2 repositories')).toBeTruthy()
-    expect(screen.getByText('Demo runs are not counted')).toBeTruthy()
+    expect(within(region('CO2e saved')).getByText('per 1M calls of each improved function')).toBeTruthy()
+    expect(within(region('CO2e saved')).getByText('Demo runs are not counted')).toBeTruthy()
+    expect(valueOf('Functions improved')).toBe('10')
+    expect(within(region('Functions improved')).getByText('in 2 repositories')).toBeTruthy()
+    expect(valueOf('Average reduction')).toBe('−70.8%')
+    expect(valueOf('Runs')).toBe('6')
+    expect(within(region('Runs')).getByText('1 running, 4 completed')).toBeTruthy()
 
     // the details have loaded and the total still comes from the summaries
-    await screen.findByText('Recent improvements')
-    expect(container.querySelector('p.text-xl')?.textContent).toBe('155.0 g CO2e')
+    await screen.findByText('Top improvements')
+    expect(valueOf('CO2e saved')).toBe('155.0 g')
   })
 
   it('projects a year from the calls the user types', () => {
     stubServer()
     renderDashboard(RUNS)
-    expect(screen.getByText('155.0 g')).toBeTruthy()
-    fireEvent.change(screen.getByLabelText('Calls per year for each function'), { target: { value: '2,000,000' } })
-    expect(screen.getByText('310.0 g')).toBeTruthy()
+    const year = region('Yearly estimate')
+    expect(within(year).getByText('155.0 g')).toBeTruthy()
+    fireEvent.change(within(year).getByLabelText('Calls per year for each function'), { target: { value: '2,000,000' } })
+    expect(within(year).getByText('310.0 g')).toBeTruthy()
   })
 
   it('uses the singular for one function in one repository', () => {
     stubServer()
     renderDashboard([run({ id: 'one', counts_by_outcome: { accepted: 1 }, g_saved_per_1m_calls: 2 })])
-    expect(screen.getByText('From 1 function improved in 1 repository')).toBeTruthy()
+    expect(valueOf('Functions improved')).toBe('1')
+    expect(within(region('Functions improved')).getByText('in 1 repository')).toBeTruthy()
     expect(screen.queryByText('Demo runs are not counted')).toBeNull()
   })
 
@@ -153,14 +162,16 @@ describe('DashboardPage', () => {
     stubServer()
     renderDashboard(RUNS)
 
-    const section = screen.getByRole('heading', { name: 'Running now' }).parentElement!
+    const section = screen.getByRole('heading', { name: 'Running now' }).closest('section')!
     const running = within(section).getByRole('link')
     expect(running.getAttribute('href')).toBe('/runs/other-live')
-    expect(running.textContent).toBe('parsersOptimizing · 2 of 8 done')
+    expect(running.textContent).toContain('acme/parsers')
+    expect(running.textContent).toContain('Optimizing · 2 of 8 done')
+    expect(within(section).getByRole('listitem', { current: 'step' }).textContent).toBe('Optimize')
 
-    await screen.findByText('Recent improvements')
+    await screen.findByText('Top improvements')
     const table = screen.getByText('has_pair_with_sum').closest('table')!
-    const rows = within(table).getAllByRole('row')
+    const rows = [...table.querySelectorAll('tbody tr')] as HTMLElement[]
     expect(rows.map((r) => within(r).getByRole('link').textContent)).toEqual([
       'has_pair_with_sum',
       'haversine',
@@ -178,8 +189,8 @@ describe('DashboardPage', () => {
   it('shows the newest five runs and a link to all of them', () => {
     stubServer()
     renderDashboard(RUNS)
-    const recent = screen.getByRole('heading', { name: 'Recent runs' }).parentElement!
-    expect(within(recent).getAllByRole('row')).toHaveLength(5)
+    const recent = screen.getByRole('heading', { name: 'Recent runs' }).closest('section')!
+    expect(within(recent).getAllByRole('listitem')).toHaveLength(5)
     expect(within(recent).getByRole('link', { name: 'All runs' }).getAttribute('href')).toBe('/runs')
   })
 
@@ -188,7 +199,8 @@ describe('DashboardPage', () => {
     renderDashboard([run({ id: 'demo', source: DEMO, mode: 'demo' })])
     expect(screen.getByText('No improvements from your own repositories yet')).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Start a run' }).getAttribute('href')).toBe('/new')
-    expect(document.querySelector('p.text-xl')).toBeNull()
+    expect(valueOf('CO2e saved')).toBe(NONE)
+    expect(screen.queryByRole('region', { name: 'Yearly estimate' })).toBeNull()
   })
 
   it('leaves out Start a run while a run is active', () => {

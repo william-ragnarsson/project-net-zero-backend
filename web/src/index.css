@@ -1,5 +1,6 @@
 @import '@fontsource/geologica/latin-400.css';
 @import '@fontsource/geologica/latin-500.css';
+@import '@fontsource/geologica/latin-600.css';
 @import '@fontsource/jetbrains-mono/latin-400.css';
 
 @tailwind base;
@@ -8,12 +9,13 @@
 
 :root {
   color-scheme: light;
-  --nz-page: #fcfcfb;
-  --nz-sidebar: #f6f6f4;
+  /* the page is a shade darker than the cards on it; the sidebar sits between them */
+  --nz-page: #f6f6f3;
+  --nz-sidebar: #fbfbf9;
   --nz-surface: #ffffff;
-  --nz-hover: #efefec;
-  --nz-line: #ebebe8;
-  --nz-control: #e2e2de;
+  --nz-hover: #f0f0ec;
+  --nz-line: #e7e7e2;
+  --nz-control: #dededa;
   --nz-control-strong: #8f8f89;
   --nz-edge: #dcdcd8;
   --nz-edge-strong: #b9b9b3;
@@ -23,9 +25,13 @@
   --nz-accent: #2f7a57;
   --nz-accent-hover: #276b4b;
   --nz-accent-tint: #edf5f0;
+  --nz-accent-soft: #cfe4d7;
   --nz-fail: #b4473a;
   --nz-fail-tint: #fbefed;
+  --nz-fail-soft: #e8b9b1;
   --nz-caution: #8a5f10;
+  --nz-caution-tint: #fbf4e4;
+  --nz-caution-soft: #ead6a6;
   --nz-code-keyword: #7a3e9d;
   --nz-code-string: #1f5f8b;
   --nz-scrim: rgba(29, 29, 27, 0.2);

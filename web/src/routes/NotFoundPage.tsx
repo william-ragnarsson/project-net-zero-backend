@@ -12,7 +12,7 @@ export function NotFoundPage() {
         title="Page not found"
         body="There’s nothing at this address."
         actions={
-          <Link to="/" className={buttonClass('secondary', 'md')}>
+          <Link to="/dashboard" className={buttonClass('secondary', 'md')}>
             Go to the dashboard
           </Link>
         }

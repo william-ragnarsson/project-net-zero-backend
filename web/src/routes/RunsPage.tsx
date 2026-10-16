@@ -6,11 +6,14 @@ import { Co2 } from '../components/Co2'
 import { PageHeader } from '../components/PageHeader'
 import type { RunSummary } from '../gen/events'
 import { formatGrams, formatPct, formatWhen, NONE } from '../lib/format'
-import { filterRuns, isTerminal, repoOf, runValue, stateLabel, TONE_CLASS, type RunFilterMode } from '../lib/runs'
+import { filterRuns, isTerminal, repoOf, runStatus, runValue, TONE_CLASS, type RunFilterMode } from '../lib/runs'
 import { useTitle } from '../lib/useTitle'
+import { Badge } from '../ui/Badge'
 import { Button, buttonClass } from '../ui/Button'
+import { Card } from '../ui/Card'
 import { Delayed } from '../ui/Delayed'
 import { EmptyState } from '../ui/EmptyState'
+import { Icon } from '../ui/Icon'
 import { InlineNotice } from '../ui/InlineNotice'
 import { Input } from '../ui/Input'
 import { Page } from '../ui/Page'
@@ -60,32 +63,38 @@ export function RunsPage() {
   if (runs.data !== undefined) {
     const shown = filterRuns(runs.data, q, mode)
     body = !hasRuns ? (
-      <EmptyState
-        title="No runs yet"
-        actions={
-          <>
-            <Link to="/new" className={buttonClass('primary', 'md')}>
-              Start a run
-            </Link>
-            <Link to="/replays" className={buttonClass('secondary', 'md')}>
-              Watch a replay
-            </Link>
-          </>
-        }
-      />
+      <Card>
+        <EmptyState
+          title="No runs yet"
+          body="Each run you start shows up here, with what it changed and what it saved."
+          actions={
+            <>
+              <Link to="/new" className={buttonClass('primary', 'md')}>
+                Start a run
+              </Link>
+              <Link to="/replays" className={buttonClass('secondary', 'md')}>
+                Watch a replay
+              </Link>
+            </>
+          }
+        />
+      </Card>
     ) : (
-      <>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <Input
-            id="runs-filter"
-            type="search"
-            placeholder="Filter by repository"
-            aria-label="Filter by repository"
-            autoComplete="off"
-            value={q}
-            onChange={(e) => setParam('q', e.target.value, '')}
-            className="sm:w-64"
-          />
+      <Card>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-3">
+          <div className="relative w-full sm:w-64">
+            <Icon name="search" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-3" />
+            <Input
+              id="runs-filter"
+              type="search"
+              placeholder="Filter by repository"
+              aria-label="Filter by repository"
+              autoComplete="off"
+              value={q}
+              onChange={(e) => setParam('q', e.target.value, '')}
+              className="pl-8"
+            />
+          </div>
           <Segmented label="Run type" options={MODES} value={mode} onChange={(m) => setParam('mode', m, 'all')} />
         </div>
         {shown.length === 0 ? (
@@ -101,9 +110,14 @@ export function RunsPage() {
           <>
             <RunTable runs={shown} />
             <RunList runs={shown} />
+            <p className="border-t border-line px-5 py-3 text-sm text-ink-3">
+              {shown.length === runs.data.length
+                ? `${runs.data.length} ${runs.data.length === 1 ? 'run' : 'runs'}`
+                : `${shown.length} of ${runs.data.length} runs`}
+            </p>
           </>
         )}
-      </>
+      </Card>
     )
   } else if (runs.isError) {
     // offline, the header's status line says so instead
@@ -129,7 +143,16 @@ export function RunsPage() {
 
   return (
     <Page>
-      <PageHeader title="Runs" />
+      <PageHeader
+        title="Runs"
+        meta="Every run on this server, newest first"
+        actions={
+          <Link to="/new" className={buttonClass('primary', 'md')}>
+            <Icon name="plus" />
+            New run
+          </Link>
+        }
+      />
       {body}
     </Page>
   )
@@ -137,7 +160,7 @@ export function RunsPage() {
 
 function RunTable({ runs }: { runs: RunSummary[] }) {
   return (
-    <div className="hidden md:block">
+    <div className="hidden px-5 md:block">
       <Table>
         <THead>
           <tr>
@@ -151,26 +174,34 @@ function RunTable({ runs }: { runs: RunSummary[] }) {
             </Th>
           </tr>
         </THead>
-        <TBody>
+        <TBody className="[&>tr:last-child]:border-0">
           {runs.map((r) => {
             const repo = repoOf(r)
+            const status = runStatus(r)
             const won = accepted(r) >= 1
             return (
               <Tr key={r.id} interactive>
                 {/* break-words, not anywhere: `anywhere` drops the min-content width and the column collapses first */}
-                <Td className="break-words">
-                  <Link to={runHref(r.id)} className="text-ink after:absolute after:inset-0 after:content-['']">
-                    {repo.name}
-                  </Link>
-                  {repo.owner !== null && <span className="ml-2 text-sm text-ink-3">{repo.owner}</span>}
+                <Td className="h-14 break-words">
+                  <span className="flex items-center gap-3">
+                    <Initial name={repo.name} />
+                    <span className="min-w-0">
+                      <Link to={runHref(r.id)} className="block text-ink after:absolute after:inset-0 after:content-['']">
+                        {repo.name}
+                      </Link>
+                      <span className="block text-xs text-ink-3">{repo.owner ?? 'Bundled demo'}</span>
+                    </span>
+                  </span>
                 </Td>
                 <Td className="whitespace-nowrap text-sm text-ink-2">{formatWhen(r.created_ts)}</Td>
-                <Td className={`whitespace-nowrap ${r.state === 'failed' ? 'text-fail' : 'text-ink-2'}`}>{stateLabel(r.state)}</Td>
+                <Td className="whitespace-nowrap">
+                  <Badge tone={status.tone}>{status.label}</Badge>
+                </Td>
                 {/* a run that ended before choosing has no functions, which is not "0 of 0" */}
                 <Td align="right" muted={!(isTerminal(r.state) && r.functions_total > 0)}>
                   {isTerminal(r.state) && r.functions_total > 0 ? `${accepted(r)} of ${r.functions_total}` : NONE}
                 </Td>
-                <Td align="right" className={won ? 'text-accent' : 'text-ink-3'}>
+                <Td align="right" className={won ? 'font-medium text-accent' : 'text-ink-3'}>
                   {won ? formatPct(r.mean_reduction_pct) : NONE}
                 </Td>
                 <Td align="right" className={won ? 'text-ink-2' : 'text-ink-3'}>
@@ -188,24 +219,41 @@ function RunTable({ runs }: { runs: RunSummary[] }) {
 /** Below 768px the six columns become two quiet lines per run. */
 function RunList({ runs }: { runs: RunSummary[] }) {
   return (
-    <ul className="divide-y divide-line md:hidden">
+    <ul className="px-2 py-1 md:hidden">
       {runs.map((r) => {
         const repo = repoOf(r)
         const value = runValue(r)
+        const status = runStatus(r)
         return (
           <li key={r.id}>
-            <Link to={runHref(r.id)} className="-mx-3 flex flex-col gap-0.5 rounded-lg px-3 py-3 hover:bg-hover">
-              <span className="flex items-baseline justify-between gap-3">
-                <span className="min-w-0 truncate text-base text-ink">{repo.name}</span>
-                <span className={`shrink-0 text-sm ${TONE_CLASS[value.tone]}`}>{value.text}</span>
+            <Link to={runHref(r.id)} className="flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-hover">
+              <Initial name={repo.name} />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-base text-ink">{repo.name}</span>
+                <span className="block truncate text-xs text-ink-3">
+                  {repo.owner ?? 'Bundled demo'} · {formatWhen(r.created_ts)}
+                </span>
               </span>
-              <span className="text-xs text-ink-3">
-                {repo.owner ?? 'Demo'} · {formatWhen(r.created_ts)} · {stateLabel(r.state)}
-              </span>
+              {r.state === 'completed' ? (
+                <span className={`shrink-0 text-sm tabular-nums ${TONE_CLASS[value.tone]}`}>{value.text}</span>
+              ) : (
+                <Badge tone={status.tone}>{status.label}</Badge>
+              )}
             </Link>
           </li>
         )
       })}
     </ul>
+  )
+}
+
+function Initial({ name }: { name: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="grid size-8 shrink-0 place-items-center rounded-lg bg-hover text-sm font-medium uppercase text-ink-2"
+    >
+      {name.charAt(0)}
+    </span>
   )
 }

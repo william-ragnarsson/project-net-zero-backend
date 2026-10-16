@@ -45,7 +45,7 @@ export function AppShell() {
         <Button variant="quiet" icon aria-label="Open menu" aria-expanded={drawer} onClick={() => setDrawer(true)}>
           <Icon name="menu" />
         </Button>
-        <Link to="/" className="px-1">
+        <Link to="/dashboard" className="px-1">
           <Logo />
         </Link>
       </header>

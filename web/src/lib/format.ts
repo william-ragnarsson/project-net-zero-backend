@@ -92,6 +92,22 @@ export function formatWhen(ts: number, now: number = Date.now()): string {
     : `${day} ${d.getFullYear()}`
 }
 
+/**
+ * How long ago, for lists: `just now`, `5 min ago`, `3 h ago`, `2 days ago`, then the date.
+ * `short` drops the words for tight rows: `now`, `5m`, `3h`, `2d`.
+ */
+export function formatAgo(ts: number, now: number = Date.now(), short = false): string {
+  const min = Math.floor(Math.max(0, now - ts) / 60_000)
+  if (min < 1) return short ? 'now' : 'just now'
+  if (min < 60) return short ? `${min}m` : `${min} min ago`
+  const h = Math.floor(min / 60)
+  if (h < 24) return short ? `${h}h` : `${h} h ago`
+  const d = Math.floor(h / 24)
+  if (d < 7) return short ? `${d}d` : d === 1 ? 'yesterday' : `${d} days ago`
+  const date = new Date(ts)
+  return `${date.getDate()} ${MONTHS[date.getMonth()]}`
+}
+
 /** A file size: `812 B`, `14.2 kB`, `1.3 MB`. */
 export function formatBytes(n: number): string {
   if (n < 1000) return `${Math.round(n)} B`

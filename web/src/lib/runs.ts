@@ -76,6 +76,42 @@ const STATE_LABEL: Record<State, string> = {
 
 export const stateLabel = (s: State): string => STATE_LABEL[s]
 
+export type StatusTone = 'success' | 'neutral' | 'fail' | 'live' | 'caution'
+
+/** A run's state as a badge: what it is doing, or how it ended. */
+export function runStatus(r: RunSummary): { label: string; tone: StatusTone } {
+  switch (r.state) {
+    case 'awaiting_selection':
+      return { label: 'Waiting for you', tone: 'caution' }
+    case 'completed':
+      return { label: 'Completed', tone: (r.counts_by_outcome.accepted ?? 0) >= 1 ? 'success' : 'neutral' }
+    case 'failed':
+      return { label: 'Failed', tone: 'fail' }
+    case 'cancelled':
+    case 'interrupted':
+      return { label: stateLabel(r.state), tone: 'neutral' }
+    default:
+      return { label: stateLabel(r.state), tone: 'live' }
+  }
+}
+
+/** The four stages a run moves through, for the dashboard's stepper. */
+export const STAGES = ['Find functions', 'Choose', 'Optimize', 'Patch'] as const
+
+/** Which of `STAGES` an active run is in. */
+export function stageIndex(s: State): number {
+  switch (s) {
+    case 'awaiting_selection':
+      return 1
+    case 'optimizing':
+      return 2
+    case 'finalizing':
+      return 3
+    default:
+      return 0
+  }
+}
+
 /** What an active run is doing, for the dashboard's "Running now" row. */
 export function progressText(r: RunSummary): string {
   switch (r.state) {
@@ -95,6 +131,8 @@ export interface Impact {
   grams: number
   functions: number
   repositories: number
+  /** the mean reduction across every improved function, or null with none */
+  meanPct: number | null
   /** the counted run ids, newest first */
   runs: string[]
   excludedDemo: number
@@ -121,13 +159,47 @@ export function selectImpact(runs: RunSummary[]): Impact {
     if (seen === undefined || r.created_ts > seen.created_ts) newest.set(key, r)
   }
   const kept = [...newest.values()].sort((a, b) => b.created_ts - a.created_ts)
+  // each run's mean is over its own improved functions, so weight it by how many there were
+  let weighted = 0
+  let improved = 0
+  for (const r of kept) {
+    const n = r.counts_by_outcome.accepted ?? 0
+    if (n === 0 || r.mean_reduction_pct === null) continue
+    weighted += r.mean_reduction_pct * n
+    improved += n
+  }
   return {
+    meanPct: improved === 0 ? null : weighted / improved,
     grams: kept.reduce((sum, r) => sum + r.g_saved_per_1m_calls, 0),
     functions: kept.reduce((sum, r) => sum + (r.counts_by_outcome.accepted ?? 0), 0),
     repositories: kept.filter((r) => (r.counts_by_outcome.accepted ?? 0) >= 1).length,
     runs: kept.map((r) => r.id),
     excludedDemo,
   }
+}
+
+export type OutcomeGroup = 'improved' | 'no_win' | 'rejected' | 'skipped' | 'stopped'
+
+const GROUP_OF: Record<keyof RunSummary['counts_by_outcome'], OutcomeGroup> = {
+  accepted: 'improved',
+  no_significant_win: 'no_win',
+  all_rejected: 'rejected',
+  reverted: 'rejected',
+  skipped_untestable: 'skipped',
+  skipped_capture: 'skipped',
+  failed: 'stopped',
+  cancelled: 'stopped',
+}
+
+/** What happened to the functions of these runs, in five groups. */
+export function outcomeTotals(runs: RunSummary[]): Record<OutcomeGroup, number> {
+  const totals: Record<OutcomeGroup, number> = { improved: 0, no_win: 0, rejected: 0, skipped: 0, stopped: 0 }
+  for (const r of runs) {
+    for (const [k, n] of Object.entries(r.counts_by_outcome) as [keyof RunSummary['counts_by_outcome'], number][]) {
+      totals[GROUP_OF[k]] += n
+    }
+  }
+  return totals
 }
 
 export type RunFilterMode = 'all' | 'live' | 'demo'

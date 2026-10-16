@@ -10,6 +10,7 @@ import {
   formatPct,
   formatUsd,
   formatWhen,
+  formatAgo,
   massUnit,
   NANOGRAMS,
   NONE,
@@ -74,6 +75,21 @@ describe('format', () => {
     expect(formatWhen(new Date(2026, 9, 12, 22, 9).getTime(), now)).toBe('12 Oct 22:09')
     expect(formatWhen(new Date(2026, 0, 3, 7, 5).getTime(), now)).toBe('3 Jan 07:05')
     expect(formatWhen(new Date(2025, 9, 12, 22, 9).getTime(), now)).toBe('12 Oct 2025')
+  })
+
+  it('says how long ago, in words or short', () => {
+    const now = new Date(2026, 9, 13, 9, 0).getTime()
+    const ago = (ms: number, short = false) => formatAgo(now - ms, now, short)
+    expect(ago(20_000)).toBe('just now')
+    expect(ago(5 * 60_000)).toBe('5 min ago')
+    expect(ago(5 * 60_000, true)).toBe('5m')
+    expect(ago(3 * 3_600_000)).toBe('3 h ago')
+    expect(ago(26 * 3_600_000)).toBe('yesterday')
+    expect(ago(3 * 86_400_000)).toBe('3 days ago')
+    expect(ago(3 * 86_400_000, true)).toBe('3d')
+    expect(formatAgo(new Date(2026, 8, 1, 12, 0).getTime(), now)).toBe('1 Sep')
+    // a clock a little ahead of the server's never reads as the future
+    expect(formatAgo(now + 5_000, now)).toBe('just now')
   })
 
   it('formats file sizes', () => {

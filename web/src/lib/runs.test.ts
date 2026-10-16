@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import type { RunSummary } from '../gen/events'
-import { filterRuns, parseRepoUrl, progressText, recentRuns, repoOf, runValue, selectImpact, stateLabel } from './runs'
+import {
+  filterRuns,
+  outcomeTotals,
+  parseRepoUrl,
+  progressText,
+  recentRuns,
+  repoOf,
+  runStatus,
+  runValue,
+  selectImpact,
+  stageIndex,
+  stateLabel,
+} from './runs'
 
 const github = (url: string, ref: string | null = null): RunSummary['source'] => ({ kind: 'github', url, ref })
 const DEMO: RunSummary['source'] = { kind: 'demo', url: null, ref: null }
@@ -176,7 +188,7 @@ describe('selectImpact', () => {
       summary({ id: 'failed', state: 'failed', source: github('https://github.com/o/f'), g_saved_per_1m_calls: 50 }),
       summary({ id: 'running', state: 'optimizing', source: github('https://github.com/o/x'), g_saved_per_1m_calls: 50 }),
     ])
-    expect(impact).toEqual({ grams: 10, functions: 6, repositories: 1, runs: ['a'], excludedDemo: 1 })
+    expect(impact).toEqual({ grams: 10, functions: 6, repositories: 1, meanPct: -70.8, runs: ['a'], excludedDemo: 1 })
   })
 
   it('keeps the newest run per repository, whatever its ref', () => {
@@ -208,6 +220,47 @@ describe('selectImpact', () => {
     expect(impact.grams).toBeCloseTo(243.39, 2)
     expect(impact.runs).toEqual(['20261012-220928-example-textkit', '20261012-220728-acme-geo-utils'])
     expect(impact.excludedDemo).toBe(1)
+  })
+})
+
+describe('selectImpact meanPct', () => {
+  it('weights each run’s mean by its improved functions', () => {
+    const impact = selectImpact([
+      summary({ id: 'a', source: github('https://github.com/o/a'), counts_by_outcome: { accepted: 3 }, mean_reduction_pct: -60 }),
+      summary({ id: 'b', source: github('https://github.com/o/b'), counts_by_outcome: { accepted: 1 }, mean_reduction_pct: -20 }),
+      summary({ id: 'c', source: github('https://github.com/o/c'), counts_by_outcome: {}, mean_reduction_pct: null }),
+    ])
+    expect(impact.meanPct).toBe(-50)
+  })
+
+  it('is null with nothing improved', () => {
+    expect(selectImpact([summary({ counts_by_outcome: {}, mean_reduction_pct: null })]).meanPct).toBeNull()
+  })
+})
+
+describe('runStatus and stageIndex', () => {
+  it('names what a run is doing or how it ended', () => {
+    expect(runStatus(summary({ state: 'awaiting_selection' }))).toEqual({ label: 'Waiting for you', tone: 'caution' })
+    expect(runStatus(summary({ state: 'optimizing' }))).toEqual({ label: 'Optimizing', tone: 'live' })
+    expect(runStatus(summary())).toEqual({ label: 'Completed', tone: 'success' })
+    expect(runStatus(summary({ counts_by_outcome: {} }))).toEqual({ label: 'Completed', tone: 'neutral' })
+    expect(runStatus(summary({ state: 'failed' }))).toEqual({ label: 'Failed', tone: 'fail' })
+  })
+
+  it('places an active run in one of four stages', () => {
+    expect(['cloning', 'triaging', 'awaiting_selection', 'optimizing', 'finalizing'].map((s) => stageIndex(s as RunSummary['state']))).toEqual([
+      0, 0, 1, 2, 3,
+    ])
+  })
+})
+
+describe('outcomeTotals', () => {
+  it('groups outcomes across runs', () => {
+    const totals = outcomeTotals([
+      summary({ counts_by_outcome: { accepted: 2, no_significant_win: 1, reverted: 1 } }),
+      summary({ counts_by_outcome: { all_rejected: 1, skipped_capture: 2, failed: 1, cancelled: 1 } }),
+    ])
+    expect(totals).toEqual({ improved: 2, no_win: 1, rejected: 2, skipped: 2, stopped: 2 })
   })
 })
 

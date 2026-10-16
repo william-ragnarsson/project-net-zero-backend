@@ -1,4 +1,4 @@
-// /new: one form that starts a run on a GitHub repository, or on the bundled demo.
+// /new: a form that starts a run on a GitHub repository, the bundled demo beside it, and what happens next.
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { isApiError } from '../api/client'
@@ -7,8 +7,11 @@ import { PageHeader } from '../components/PageHeader'
 import type { CreateRunRequest, RunSummary } from '../gen/events'
 import { isActive, parseRepoUrl } from '../lib/runs'
 import { useTitle } from '../lib/useTitle'
+import { Badge } from '../ui/Badge'
 import { Button, buttonClass } from '../ui/Button'
+import { Card, CardHeader } from '../ui/Card'
 import { Field } from '../ui/Field'
+import { Icon, type IconName } from '../ui/Icon'
 import { InlineNotice } from '../ui/InlineNotice'
 import { Input } from '../ui/Input'
 import { Page } from '../ui/Page'
@@ -16,6 +19,13 @@ import { Page } from '../ui/Page'
 const INVALID = 'Enter a GitHub repository URL, like https://github.com/owner/repo'
 
 const noticeLink = buttonClass('secondary', 'sm')
+
+const NEXT: { icon: IconName; title: string; body: string }[] = [
+  { icon: 'target', title: 'It finds candidates', body: 'It clones the repository, installs what it can, and ranks up to 20 functions.' },
+  { icon: 'list-check', title: 'You choose', body: 'The best eight are picked for you. Change the selection, then confirm.' },
+  { icon: 'flask', title: 'It tries rewrites', body: 'Tests first, then three rewrites per function, each checked and benchmarked.' },
+  { icon: 'file', title: 'You get a patch', body: 'Only the rewrites that passed and used less energy, with the numbers for each.' },
+]
 
 export function NewRunPage() {
   useTitle('New run')
@@ -127,48 +137,113 @@ export function NewRunPage() {
 
   return (
     <Page>
-      <PageHeader title="New run" />
-      {notices.length > 0 && <div className="mb-6 max-w-[520px] space-y-3">{notices}</div>}
-      <form className="max-w-[520px] space-y-5" onSubmit={submit} noValidate>
-        <Field label="GitHub repository" htmlFor="repo" error={fieldError}>
-          <Input
-            id="repo"
-            name="repo"
-            placeholder="https://github.com/owner/repo"
-            autoFocus
-            autoComplete="off"
-            spellCheck={false}
-            value={repo}
-            onChange={(e) => editRepo(e.target.value)}
-            disabled={noLive}
-            aria-invalid={fieldError !== null}
-            aria-describedby={fieldError !== null ? 'repo-error' : undefined}
-          />
-        </Field>
-        <Field label="Branch or tag" htmlFor="ref" hint="Optional">
-          <Input
-            id="ref"
-            name="ref"
-            placeholder="main"
-            autoComplete="off"
-            spellCheck={false}
-            value={ref}
-            onChange={(e) => setRef(e.target.value)}
-            disabled={noLive}
-            className="max-w-[240px]"
-          />
-        </Field>
-        <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" variant="primary" disabled={noLive || busy}>
-            {startingRepo ? 'Starting' : 'Start run'}
-          </Button>
+      <PageHeader title="New run" meta="Point it at a public GitHub repository, or try the bundled demo" />
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="min-w-0 space-y-6">
+          {notices.length > 0 && <div className="space-y-3">{notices}</div>}
+          <Card>
+            <CardHeader
+              title="Start from GitHub"
+              description="It clones the repository to this machine and works on its own copy."
+              action={<Icon name="github" size={20} className="text-ink-3" />}
+            />
+            <form className="space-y-5 border-t border-line px-5 py-5" onSubmit={submit} noValidate>
+              <Field label="GitHub repository" htmlFor="repo" error={fieldError}>
+                <Input
+                  id="repo"
+                  name="repo"
+                  placeholder="https://github.com/owner/repo"
+                  autoFocus
+                  autoComplete="off"
+                  spellCheck={false}
+                  value={repo}
+                  onChange={(e) => editRepo(e.target.value)}
+                  disabled={noLive}
+                  aria-invalid={fieldError !== null}
+                  aria-describedby={fieldError !== null ? 'repo-error' : undefined}
+                />
+              </Field>
+              <Field label="Branch or tag" htmlFor="ref" hint="Optional">
+                <Input
+                  id="ref"
+                  name="ref"
+                  placeholder="main"
+                  autoComplete="off"
+                  spellCheck={false}
+                  value={ref}
+                  onChange={(e) => setRef(e.target.value)}
+                  disabled={noLive}
+                  className="max-w-[240px]"
+                />
+              </Field>
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                <p className="text-sm text-ink-3">You confirm the functions before any rewriting starts.</p>
+                <Button type="submit" variant="primary" disabled={noLive || busy}>
+                  {startingRepo ? 'Starting' : 'Start run'}
+                </Button>
+              </div>
+            </form>
+          </Card>
           {demo && (
-            <Button variant={noLive ? 'primary' : 'quiet'} disabled={busy} onClick={() => start({ demo: true })}>
-              {noLive ? 'Run the demo' : 'Try the demo repository instead'}
-            </Button>
+            <Card className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+              <span aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-lg bg-accent-tint text-accent">
+                <Icon name="flask" size={20} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-md font-medium text-ink">Try the demo repository</h2>
+                <p className="mt-0.5 text-sm text-ink-2">
+                  A small bundled repository with 14 functions. Claude’s replies are written in advance, so it needs
+                  no API key. The tests and benchmarks really run.
+                </p>
+              </div>
+              <Button
+                variant={noLive ? 'primary' : 'secondary'}
+                disabled={busy}
+                onClick={() => start({ demo: true })}
+                className="self-start sm:self-auto"
+              >
+                Run the demo
+              </Button>
+            </Card>
           )}
         </div>
-      </form>
+        <aside className="space-y-6">
+          <Card>
+            <CardHeader title="What happens next" />
+            <ol className="space-y-4 px-5 pb-5">
+              {NEXT.map((step, i) => (
+                <li key={step.title} className="flex gap-3">
+                  <span
+                    aria-hidden="true"
+                    className="grid size-7 shrink-0 place-items-center rounded-full border border-line bg-page text-xs font-medium text-ink-2"
+                  >
+                    {i + 1}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-base font-medium text-ink">{step.title}</span>
+                    <span className="block text-sm text-ink-3">{step.body}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </Card>
+          {caps !== undefined && (
+            <Card>
+              <CardHeader title="This server" />
+              <dl className="space-y-2.5 px-5 pb-5 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-ink-2">Live runs</dt>
+                  <dd>{noLive ? <Badge tone="caution">Needs an API key</Badge> : <Badge tone="success">Ready</Badge>}</dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-ink-2">Demo</dt>
+                  <dd>{demo ? <Badge tone="success">Ready</Badge> : <Badge>Not in this build</Badge>}</dd>
+                </div>
+              </dl>
+            </Card>
+          )}
+        </aside>
+      </div>
     </Page>
   )
 }

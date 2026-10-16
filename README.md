@@ -413,9 +413,12 @@ expectations.
 
 The routes are in `web/src/router.tsx`:
 
-- `/`: the dashboard. CO2e saved per 1M calls across completed live runs,
-  counting the newest run per repository.
-- `/new`: start a run.
+- `/`: the landing page: what net-zero does, how a run works, why to trust
+  the result and how CO2e is estimated, linking into the app.
+- `/dashboard`: CO2e saved per 1M calls across completed live runs, counting
+  the newest run per repository, plus the running run, top improvements,
+  recent runs and a yearly estimate.
+- `/new`: start a run on a GitHub repository or the demo.
 - `/runs` and `/runs/:runId`: follow a run live, choose functions, cancel, and
   download the patch.
 - `/replays` and `/replays/:replayId`: bundled recordings. Old `/replay?src=`

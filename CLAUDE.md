@@ -60,7 +60,7 @@ The two halves are coupled only through the log, so a change that looks local ca
 ## Current state (October 2026)
 
 - PR #17 replaced the old blocking `POST /optimize` pipeline (`src/`, `server.py`, LangGraph) with this event stream. Notes that mention those files are out of date.
-- The UI is a light app shell (`web/src/components/AppShell.tsx`): dashboard, new run, runs, a run page that follows a live run (hydrate, then SSE) through finding, choosing and optimizing to the result, replays at `/replays/:id`, and read-only settings. A run is drawn as a vertical tree (`web/src/tree/`, from `deriveTree(RunModel)`). The dashboard total counts completed live GitHub runs only, newest per repository (`selectImpact` in `web/src/lib/runs.ts`).
+- `/` is a landing page outside the shell (`web/src/routes/LandingPage.tsx`); its hero picture is a static mock, not a replay. App pages are built from `Card`/`Badge` (`web/src/ui/`). The rest of the UI is a light app shell (`web/src/components/AppShell.tsx`): dashboard at `/dashboard`, new run, runs, a run page that follows a live run (hydrate, then SSE) through finding, choosing and optimizing to the result, replays at `/replays/:id`, and read-only settings. A run is drawn as a vertical tree (`web/src/tree/`, from `deriveTree(RunModel)`). The dashboard total counts completed live GitHub runs only, newest per repository (`selectImpact` in `web/src/lib/runs.ts`).
 - `NETZERO_FAKE_PIPELINE=1 make dev` runs scripted live runs with no API key, git or uv. It's the quickest way to drive the UI with a real stream.
 - The demo cassettes are generated from the hand-written `examples/demo-stories`. `make demo-cassettes` deletes any recorded cassettes.
 

@@ -139,7 +139,7 @@ describe('NewRunPage', () => {
     expect(screen.getByText('Another run is in progress')).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Open it' }).getAttribute('href')).toBe('/runs/listed')
     expect(startButton().disabled).toBe(true)
-    expect((screen.getByRole('button', { name: 'Try the demo repository instead' }) as HTMLButtonElement).disabled).toBe(
+    expect((screen.getByRole('button', { name: 'Run the demo' }) as HTMLButtonElement).disabled).toBe(
       true,
     )
   })
