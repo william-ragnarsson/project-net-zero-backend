@@ -19,6 +19,7 @@ htmlcov/
 # netzero
 runs/
 .netzero-cache/
+.netzero-db/
 emissions.csv
 powermetrics_log.txt
 

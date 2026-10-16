@@ -1,5 +1,206 @@
 {
   "$defs": {
+    "ActivityItem": {
+      "additionalProperties": false,
+      "properties": {
+        "position": {
+          "title": "Position",
+          "type": "integer"
+        },
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "type": {
+          "enum": [
+            "run.created",
+            "run.selection.confirmed",
+            "function.completed",
+            "run.completed",
+            "run.failed",
+            "run.cancelled",
+            "run.interrupted"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "project_name": {
+          "title": "Project Name",
+          "type": "string"
+        },
+        "function_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Function Id"
+        },
+        "outcome": {
+          "anyOf": [
+            {
+              "enum": [
+                "accepted",
+                "no_significant_win",
+                "all_rejected",
+                "reverted",
+                "skipped_untestable",
+                "skipped_capture",
+                "failed",
+                "cancelled"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Outcome"
+        },
+        "winner": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Winner"
+        },
+        "delta_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Delta Pct"
+        },
+        "g_saved_per_1m_calls": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "G Saved Per 1M Calls"
+        },
+        "functions": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Functions"
+        },
+        "accepted": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Accepted"
+        },
+        "message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Message"
+        }
+      },
+      "required": [
+        "position",
+        "seq",
+        "ts",
+        "type",
+        "run_id",
+        "project_id",
+        "project_name",
+        "function_id",
+        "outcome",
+        "winner",
+        "delta_pct",
+        "g_saved_per_1m_calls",
+        "functions",
+        "accepted",
+        "message"
+      ],
+      "title": "ActivityItem",
+      "type": "object"
+    },
+    "ActivityPage": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/ActivityItem"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "next": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Next"
+        }
+      },
+      "required": [
+        "items",
+        "next"
+      ],
+      "title": "ActivityPage",
+      "type": "object"
+    },
     "ApiError": {
       "additionalProperties": false,
       "properties": {
@@ -15,7 +216,8 @@
             "run_active",
             "not_found",
             "bad_state",
-            "not_ready"
+            "not_ready",
+            "no_database"
           ],
           "title": "Code",
           "type": "string"
@@ -1000,6 +1202,50 @@
         "detail"
       ],
       "title": "CandidateRejectedData",
+      "type": "object"
+    },
+    "CandidateStat": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_id": {
+          "enum": [
+            "A",
+            "B",
+            "C"
+          ],
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "hint": {
+          "title": "Hint",
+          "type": "string"
+        },
+        "proposed": {
+          "title": "Proposed",
+          "type": "integer"
+        },
+        "eligible": {
+          "title": "Eligible",
+          "type": "integer"
+        },
+        "significant": {
+          "title": "Significant",
+          "type": "integer"
+        },
+        "accepted": {
+          "title": "Accepted",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "candidate_id",
+        "hint",
+        "proposed",
+        "eligible",
+        "significant",
+        "accepted"
+      ],
+      "title": "CandidateStat",
       "type": "object"
     },
     "CandidateWriteCompleted": {
@@ -2196,6 +2442,52 @@
       "title": "FunctionDecisionData",
       "type": "object"
     },
+    "FunctionDiff": {
+      "additionalProperties": false,
+      "properties": {
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "function_id": {
+          "title": "Function Id",
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "accepted",
+            "no_significant_win",
+            "all_rejected",
+            "reverted",
+            "skipped_untestable",
+            "skipped_capture",
+            "failed",
+            "cancelled"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "diff": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Diff"
+        }
+      },
+      "required": [
+        "run_id",
+        "function_id",
+        "outcome",
+        "diff"
+      ],
+      "title": "FunctionDiff",
+      "type": "object"
+    },
     "FunctionDiffRef": {
       "additionalProperties": false,
       "properties": {
@@ -2213,6 +2505,79 @@
         "url"
       ],
       "title": "FunctionDiffRef",
+      "type": "object"
+    },
+    "FunctionHistory": {
+      "additionalProperties": false,
+      "properties": {
+        "function_id": {
+          "title": "Function Id",
+          "type": "string"
+        },
+        "qualname": {
+          "title": "Qualname",
+          "type": "string"
+        },
+        "module": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Module"
+        },
+        "file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "File"
+        },
+        "runs": {
+          "title": "Runs",
+          "type": "integer"
+        },
+        "accepted": {
+          "title": "Accepted",
+          "type": "integer"
+        },
+        "best_delta_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Best Delta Pct"
+        },
+        "points": {
+          "items": {
+            "$ref": "#/$defs/FunctionPoint"
+          },
+          "title": "Points",
+          "type": "array"
+        }
+      },
+      "required": [
+        "function_id",
+        "qualname",
+        "module",
+        "file",
+        "runs",
+        "accepted",
+        "best_delta_pct",
+        "points"
+      ],
+      "title": "FunctionHistory",
       "type": "object"
     },
     "FunctionInfo": {
@@ -2442,6 +2807,130 @@
         "data"
       ],
       "title": "FunctionMergeStarted",
+      "type": "object"
+    },
+    "FunctionPoint": {
+      "additionalProperties": false,
+      "description": "One function in one run.",
+      "properties": {
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "created_ts": {
+          "title": "Created Ts",
+          "type": "integer"
+        },
+        "base_sha": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Base Sha"
+        },
+        "outcome": {
+          "anyOf": [
+            {
+              "enum": [
+                "accepted",
+                "no_significant_win",
+                "all_rejected",
+                "reverted",
+                "skipped_untestable",
+                "skipped_capture",
+                "failed",
+                "cancelled"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Outcome"
+        },
+        "winner": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Winner"
+        },
+        "delta_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Delta Pct"
+        },
+        "ci_lo": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ci Lo"
+        },
+        "ci_hi": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ci Hi"
+        },
+        "g_saved_per_1m_calls": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "G Saved Per 1M Calls"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "created_ts",
+        "base_sha",
+        "outcome",
+        "winner",
+        "delta_pct",
+        "ci_lo",
+        "ci_hi",
+        "g_saved_per_1m_calls",
+        "reason"
+      ],
+      "title": "FunctionPoint",
       "type": "object"
     },
     "FunctionRecord": {
@@ -3058,6 +3547,290 @@
         "server_ts"
       ],
       "title": "Heartbeat",
+      "type": "object"
+    },
+    "HistoryRun": {
+      "additionalProperties": false,
+      "properties": {
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "created_ts": {
+          "title": "Created Ts",
+          "type": "integer"
+        },
+        "ended_ts": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ended Ts"
+        },
+        "state": {
+          "enum": [
+            "created",
+            "cloning",
+            "installing",
+            "discovering",
+            "triaging",
+            "awaiting_selection",
+            "optimizing",
+            "finalizing",
+            "completed",
+            "failed",
+            "cancelled",
+            "interrupted"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "live",
+            "demo",
+            "record"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ref"
+        },
+        "base_sha": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Base Sha"
+        },
+        "functions_total": {
+          "title": "Functions Total",
+          "type": "integer"
+        },
+        "functions_done": {
+          "title": "Functions Done",
+          "type": "integer"
+        },
+        "counts_by_outcome": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "propertyNames": {
+            "enum": [
+              "accepted",
+              "no_significant_win",
+              "all_rejected",
+              "reverted",
+              "skipped_untestable",
+              "skipped_capture",
+              "failed",
+              "cancelled"
+            ]
+          },
+          "title": "Counts By Outcome",
+          "type": "object"
+        },
+        "mean_reduction_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Reduction Pct"
+        },
+        "g_saved_per_1m_calls": {
+          "title": "G Saved Per 1M Calls",
+          "type": "number"
+        },
+        "kwh_saved_per_1m_calls": {
+          "title": "Kwh Saved Per 1M Calls",
+          "type": "number"
+        },
+        "llm_cost_usd": {
+          "title": "Llm Cost Usd",
+          "type": "number"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Error"
+        },
+        "events": {
+          "title": "Events",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "run_id",
+        "created_ts",
+        "ended_ts",
+        "state",
+        "mode",
+        "ref",
+        "base_sha",
+        "functions_total",
+        "functions_done",
+        "counts_by_outcome",
+        "mean_reduction_pct",
+        "g_saved_per_1m_calls",
+        "kwh_saved_per_1m_calls",
+        "llm_cost_usd",
+        "error",
+        "events"
+      ],
+      "title": "HistoryRun",
+      "type": "object"
+    },
+    "HistoryStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        },
+        "database": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Database"
+        },
+        "server_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Server Version"
+        },
+        "migrations": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Migrations",
+          "type": "array"
+        },
+        "tables": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/HistoryTable"
+          },
+          "title": "Tables",
+          "type": "array"
+        },
+        "head_position": {
+          "default": 0,
+          "title": "Head Position",
+          "type": "integer"
+        },
+        "projected_position": {
+          "default": 0,
+          "title": "Projected Position",
+          "type": "integer"
+        },
+        "last_sync_ts": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Sync Ts"
+        },
+        "recent": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/StoredEvent"
+          },
+          "title": "Recent",
+          "type": "array"
+        }
+      },
+      "required": [
+        "enabled",
+        "ok",
+        "detail",
+        "database",
+        "server_version",
+        "migrations",
+        "tables",
+        "head_position",
+        "projected_position",
+        "last_sync_ts",
+        "recent"
+      ],
+      "title": "HistoryStatus",
+      "type": "object"
+    },
+    "HistoryTable": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "rows": {
+          "title": "Rows",
+          "type": "integer"
+        },
+        "bytes": {
+          "title": "Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "rows",
+        "bytes"
+      ],
+      "title": "HistoryTable",
       "type": "object"
     },
     "ImportProbe": {
@@ -3803,6 +4576,181 @@
       "title": "PowerInfo",
       "type": "object"
     },
+    "ProjectDetail": {
+      "additionalProperties": false,
+      "properties": {
+        "project": {
+          "$ref": "#/$defs/ProjectSummary"
+        },
+        "runs": {
+          "items": {
+            "$ref": "#/$defs/HistoryRun"
+          },
+          "title": "Runs",
+          "type": "array"
+        },
+        "functions": {
+          "items": {
+            "$ref": "#/$defs/FunctionHistory"
+          },
+          "title": "Functions",
+          "type": "array"
+        },
+        "candidates": {
+          "items": {
+            "$ref": "#/$defs/CandidateStat"
+          },
+          "title": "Candidates",
+          "type": "array"
+        },
+        "rejections": {
+          "items": {
+            "$ref": "#/$defs/RejectStat"
+          },
+          "title": "Rejections",
+          "type": "array"
+        }
+      },
+      "required": [
+        "project",
+        "runs",
+        "functions",
+        "candidates",
+        "rejections"
+      ],
+      "title": "ProjectDetail",
+      "type": "object"
+    },
+    "ProjectSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "github",
+            "demo"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Url"
+        },
+        "runs": {
+          "title": "Runs",
+          "type": "integer"
+        },
+        "runs_completed": {
+          "title": "Runs Completed",
+          "type": "integer"
+        },
+        "last_run_ts": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Run Ts"
+        },
+        "last_state": {
+          "anyOf": [
+            {
+              "enum": [
+                "created",
+                "cloning",
+                "installing",
+                "discovering",
+                "triaging",
+                "awaiting_selection",
+                "optimizing",
+                "finalizing",
+                "completed",
+                "failed",
+                "cancelled",
+                "interrupted"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last State"
+        },
+        "functions_tracked": {
+          "title": "Functions Tracked",
+          "type": "integer"
+        },
+        "functions_improved": {
+          "title": "Functions Improved",
+          "type": "integer"
+        },
+        "latest_g_saved_per_1m_calls": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Latest G Saved Per 1M Calls"
+        },
+        "best_g_saved_per_1m_calls": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Best G Saved Per 1M Calls"
+        },
+        "trend": {
+          "items": {
+            "$ref": "#/$defs/TrendPoint"
+          },
+          "title": "Trend",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "url",
+        "runs",
+        "runs_completed",
+        "last_run_ts",
+        "last_state",
+        "functions_tracked",
+        "functions_improved",
+        "latest_g_saved_per_1m_calls",
+        "best_g_saved_per_1m_calls",
+        "trend"
+      ],
+      "title": "ProjectSummary",
+      "type": "object"
+    },
     "PytestFailure": {
       "additionalProperties": false,
       "properties": {
@@ -3971,6 +4919,36 @@
         "reason"
       ],
       "title": "RankingEntry",
+      "type": "object"
+    },
+    "RejectStat": {
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "enum": [
+            "syntax",
+            "static_rule",
+            "tests_failed",
+            "differential_mismatch",
+            "timeout",
+            "llm_error",
+            "identical",
+            "bench_failed",
+            "measurement_inconsistent"
+          ],
+          "title": "Reason",
+          "type": "string"
+        },
+        "count": {
+          "title": "Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "reason",
+        "count"
+      ],
+      "title": "RejectStat",
       "type": "object"
     },
     "ReplayRef": {
@@ -6934,6 +7912,51 @@
       "title": "StaticCheck",
       "type": "object"
     },
+    "StoredEvent": {
+      "additionalProperties": false,
+      "description": "One row of the ``events`` table, without its payload.",
+      "properties": {
+        "position": {
+          "title": "Position",
+          "type": "integer"
+        },
+        "stream_id": {
+          "title": "Stream Id",
+          "type": "string"
+        },
+        "stream_seq": {
+          "title": "Stream Seq",
+          "type": "integer"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "integer"
+        },
+        "recorded_at": {
+          "title": "Recorded At",
+          "type": "integer"
+        },
+        "bytes": {
+          "title": "Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "position",
+        "stream_id",
+        "stream_seq",
+        "type",
+        "ts",
+        "recorded_at",
+        "bytes"
+      ],
+      "title": "StoredEvent",
+      "type": "object"
+    },
     "TestFile": {
       "additionalProperties": false,
       "properties": {
@@ -7136,6 +8159,54 @@
         "uv"
       ],
       "title": "Tools",
+      "type": "object"
+    },
+    "TrendPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "created_ts": {
+          "title": "Created Ts",
+          "type": "integer"
+        },
+        "state": {
+          "enum": [
+            "created",
+            "cloning",
+            "installing",
+            "discovering",
+            "triaging",
+            "awaiting_selection",
+            "optimizing",
+            "finalizing",
+            "completed",
+            "failed",
+            "cancelled",
+            "interrupted"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "g_saved_per_1m_calls": {
+          "title": "G Saved Per 1M Calls",
+          "type": "number"
+        },
+        "accepted": {
+          "title": "Accepted",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "run_id",
+        "created_ts",
+        "state",
+        "g_saved_per_1m_calls",
+        "accepted"
+      ],
+      "title": "TrendPoint",
       "type": "object"
     },
     "TriageItem": {
@@ -7491,6 +8562,21 @@
     },
     "select_request": {
       "$ref": "#/$defs/SelectRequest"
+    },
+    "history_status": {
+      "$ref": "#/$defs/HistoryStatus"
+    },
+    "project_summary": {
+      "$ref": "#/$defs/ProjectSummary"
+    },
+    "project_detail": {
+      "$ref": "#/$defs/ProjectDetail"
+    },
+    "activity_page": {
+      "$ref": "#/$defs/ActivityPage"
+    },
+    "function_diff": {
+      "$ref": "#/$defs/FunctionDiff"
     }
   },
   "required": [
@@ -7503,7 +8589,12 @@
     "replay_ref",
     "api_error",
     "create_run_request",
-    "select_request"
+    "select_request",
+    "history_status",
+    "project_summary",
+    "project_detail",
+    "activity_page",
+    "function_diff"
   ],
   "title": "Contract",
   "type": "object"

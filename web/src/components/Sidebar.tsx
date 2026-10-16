@@ -69,6 +69,9 @@ export function Sidebar() {
         <NavItem to="/replays" icon="replays">
           Replays
         </NavItem>
+        <NavItem to="/history" icon="history">
+          History
+        </NavItem>
       </nav>
 
       {recent.length > 0 && (

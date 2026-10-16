@@ -107,7 +107,7 @@ describe('AppShell', () => {
     stubServer(true)
     renderShell()
     const nav = screen.getByRole('navigation', { name: 'Main' })
-    for (const name of ['Dashboard', 'Runs', 'Replays']) expect(within(nav).getByRole('link', { name })).toBeTruthy()
+    for (const name of ['Dashboard', 'Runs', 'Replays', 'History']) expect(within(nav).getByRole('link', { name })).toBeTruthy()
     // `/` is the landing page now, so the app's home is the dashboard
     expect(within(nav).getByRole('link', { name: 'Dashboard' }).getAttribute('aria-current')).toBe('page')
     expect(screen.getByRole('link', { name: 'New run' }).getAttribute('href')).toBe('/new')

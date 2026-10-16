@@ -81,15 +81,25 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 const pad2 = (n: number) => String(n).padStart(2, '0')
 
 /**
- * When something happened, in local time: `12 Oct 22:09`, or `12 Oct 2025` from another year.
- * Built by hand rather than with Intl, so the output is the same in every locale and test.
+ * A day in local time: `12 Oct`, or `12 Oct 2025` from another year.
+ * Dates are built by hand rather than with Intl, so the output is the same in every locale and test.
  */
-export function formatWhen(ts: number, now: number = Date.now()): string {
+export function formatDate(ts: number, now: number = Date.now()): string {
   const d = new Date(ts)
   const day = `${d.getDate()} ${MONTHS[d.getMonth()]}`
-  return d.getFullYear() === new Date(now).getFullYear()
-    ? `${day} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`
-    : `${day} ${d.getFullYear()}`
+  return d.getFullYear() === new Date(now).getFullYear() ? day : `${day} ${d.getFullYear()}`
+}
+
+/** The time of day in local time, on a 24-hour clock: `14:05`. */
+export function formatTime(ts: number): string {
+  const d = new Date(ts)
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`
+}
+
+/** When something happened: `12 Oct 22:09`, or `12 Oct 2025` from another year. */
+export function formatWhen(ts: number, now: number = Date.now()): string {
+  const sameYear = new Date(ts).getFullYear() === new Date(now).getFullYear()
+  return sameYear ? `${formatDate(ts, now)} ${formatTime(ts)}` : formatDate(ts, now)
 }
 
 /**
@@ -104,13 +114,18 @@ export function formatAgo(ts: number, now: number = Date.now(), short = false): 
   if (h < 24) return short ? `${h}h` : `${h} h ago`
   const d = Math.floor(h / 24)
   if (d < 7) return short ? `${d}d` : d === 1 ? 'yesterday' : `${d} days ago`
-  const date = new Date(ts)
-  return `${date.getDate()} ${MONTHS[date.getMonth()]}`
+  return formatDate(ts, now)
 }
 
-/** A file size: `812 B`, `14.2 kB`, `1.3 MB`. */
+/** Bytes in the largest unit that keeps a whole number: `592 kB`. */
 export function formatBytes(n: number): string {
-  if (n < 1000) return `${Math.round(n)} B`
-  if (n < 1_000_000) return `${(n / 1000).toFixed(1)} kB`
-  return `${(n / 1_000_000).toFixed(1)} MB`
+  if (n < 1024) return `${n} B`
+  const units = ['kB', 'MB', 'GB', 'TB']
+  let value = n / 1024
+  let unit = 0
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024
+    unit += 1
+  }
+  return `${value >= 10 ? Math.round(value) : value.toFixed(1)} ${units[unit]}`
 }

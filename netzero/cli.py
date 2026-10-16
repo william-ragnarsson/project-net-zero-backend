@@ -532,6 +532,11 @@ def doctor(
     line(key or None, "api key", "set" if key else "not set: demo and replay modes only")
     cassettes = paths.CASSETTES_DIR.is_dir()
     line(cassettes or None, "demo", "cassettes found" if cassettes else "no cassettes")
+    if settings.database_url:
+        ok, detail = _db_check(settings.database_url)
+        line(ok, "postgres", detail)
+    else:
+        line(None, "postgres", "off: set NETZERO_DATABASE_URL to keep run history (make db)")
 
     power = asyncio.run(probe(settings, refresh=refresh))
     grid = power.grid
@@ -556,6 +561,145 @@ def doctor(
             console.print(f"[grey62]{SUDOERS_HINT}[/]", soft_wrap=True)
     if failed:
         raise typer.Exit(1)
+
+
+def _db_check(url: str) -> tuple[bool, str]:
+    import psycopg
+
+    from netzero.history import db
+
+    try:
+        with db.connect(url, timeout_s=3) as conn:
+            version = conn.execute("show server_version").fetchone()[0]  # type: ignore[index]
+            applied = db.applied_migrations(conn)
+    except psycopg.Error as exc:
+        return False, f"{db.describe(url)}: {str(exc).strip().splitlines()[0]}"
+    pending = len(db.migrations()) - len(applied)
+    tables = f"{pending} migration(s) pending" if pending else "migrated"
+    return True, f"{db.describe(url)}, Postgres {version}, {tables}"
+
+
+# -- netzero db --------------------------------------------------------------------------
+
+db_app = typer.Typer(
+    name="db",
+    help="The Postgres run history (NETZERO_DATABASE_URL): status, sync, import, rebuild.",
+    no_args_is_help=True,
+)
+app.add_typer(db_app)
+
+
+def _db_conn():
+    import psycopg
+
+    from netzero.config import get_settings
+    from netzero.history import db
+
+    url = get_settings().database_url
+    if not url:
+        err.print("NETZERO_DATABASE_URL is not set; `make db` starts a local Postgres")
+        raise typer.Exit(2)
+    try:
+        conn = db.connect(url)
+        applied = db.migrate(conn)
+    except psycopg.Error as exc:
+        err.print(f"[red]✗[/] {db.describe(url)}: {str(exc).strip().splitlines()[0]}")
+        raise typer.Exit(1) from None
+    if applied:
+        console.print(f"applied migrations {', '.join(applied)}")
+    return conn
+
+
+@db_app.command("status")
+def db_status() -> None:
+    """What the database holds, table by table."""
+    from rich.table import Table
+
+    from netzero.config import get_settings
+    from netzero.history import db, queries
+
+    with _db_conn() as conn:
+        tables = queries.tables(conn)
+        head, projected = queries.positions(conn)
+        migrations = db.applied_migrations(conn)
+    url = get_settings().database_url or ""
+    console.print(f"[bold]{db.describe(url)}[/]  migrations {', '.join(migrations)}")
+    grid = Table(box=None, pad_edge=False)
+    grid.add_column("table")
+    grid.add_column("rows", justify="right")
+    grid.add_column("size", justify="right")
+    for t in tables:
+        grid.add_row(t.name, f"{t.rows:,}", f"{t.bytes / 1024:,.0f} kB")
+    console.print(grid)
+    behind = head - projected
+    console.print(
+        f"events through position {head:,}; read models through {projected:,}"
+        + (f" [#ffbd2e]({behind:,} to fold: netzero db sync)[/]" if behind else "")
+    )
+
+
+@db_app.command("sync")
+def db_sync() -> None:
+    """Store every run under runs/ that isn't stored yet, and fold it into the read models.
+
+    A running server does this every couple of seconds; this is for CLI-only use.
+    """
+    from netzero.config import get_settings
+    from netzero.history import projector
+    from netzero.history.ingest import Shipper
+    from netzero.pipeline.store import RunStore
+
+    with _db_conn() as conn:
+        shipped = Shipper(RunStore(get_settings().runs_dir)).ship(conn)
+        projected = projector.project_pending(conn)
+    for problem in shipped.problems:
+        err.print(f"[#ffbd2e]![/] {problem}")
+    console.print(
+        f"stored {shipped.events:,} events from {len(shipped.runs)} run(s); "
+        f"folded {projected.runs} run(s)"
+        + (f", skipped {projected.skipped}" if projected.skipped else "")
+    )
+
+
+@db_app.command("import")
+def db_import(
+    files: list[Path] = typer.Argument(
+        ..., exists=True, dir_okay=False, help="events.jsonl files (runs, replays)."
+    ),
+) -> None:
+    """Store event logs from anywhere, e.g. the bundled replays or another machine's runs."""
+    import psycopg
+
+    from netzero.history import projector
+    from netzero.history.ingest import import_file
+
+    failed = False
+    with _db_conn() as conn:
+        for path in files:
+            try:
+                run_id, n = import_file(conn, path)
+            except (ValueError, psycopg.Error) as exc:
+                failed = True
+                err.print(f"[red]✗[/] {rel(path)}: {str(exc).splitlines()[0]}")
+                continue
+            console.print(f"{rel(path)}: run {run_id}, {n} new event(s)")
+        projected = projector.project_pending(conn)
+    console.print(f"folded {projected.runs} run(s)")
+    if failed:
+        raise typer.Exit(1)
+
+
+@db_app.command("rebuild")
+def db_rebuild() -> None:
+    """Throw away the read models and fold every stored event again. The events stay."""
+    from netzero.history import projector
+
+    with _db_conn() as conn:
+        result = projector.rebuild_all(conn)
+    console.print(
+        f"folded {result.runs} run(s) through position {result.position:,}"
+        + (f", skipped {result.skipped}" if result.skipped else "")
+    )
 
 
 async def _ask(prompt: str) -> str:

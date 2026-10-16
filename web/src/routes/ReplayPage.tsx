@@ -1,7 +1,6 @@
 // /replays/:replayId?speed=&at=&node= plays one recorded run from the bundled index.
 import { Link, useParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
-import type { ReplayRef } from '../gen/events'
 import { useTitle } from '../lib/useTitle'
 import { ReplayPlayer } from '../replay/ReplayPlayer'
 import { useReplayFile, useReplayIndex } from '../sources/queries'
@@ -68,13 +67,14 @@ export function ReplayPage() {
   return (
     <Page width="wide">
       <PageHeader title={entry.title} crumbs={CRUMBS} meta={entry.description} />
-      <ReplayLoader key={entry.src} entry={entry} />
+      <ReplayLoader key={entry.src} src={entry.src} />
     </Page>
   )
 }
 
-function ReplayLoader({ entry }: { entry: ReplayRef }) {
-  const file = useReplayFile(entry.src)
+/** Fetches one events.jsonl and plays it. The stored runs in /history use it too. */
+export function ReplayLoader({ src }: { src: string }) {
+  const file = useReplayFile(src)
   if (file.isPending) return <Loading />
   if (file.isError) return <Failed text="Can’t load this replay" retry={() => void file.refetch()} />
   if (file.data.events.length === 0) return <EmptyState title="This replay has no events" />

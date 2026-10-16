@@ -34,6 +34,8 @@ export type IconName =
   | 'cpu'
   | 'keyboard'
   | 'github'
+  | 'history'
+  | 'database'
 
 const dot = (cx: number, cy: number) => <circle cx={cx} cy={cy} r="0.9" fill="currentColor" stroke="none" />
 
@@ -166,6 +168,13 @@ const paths: Record<IconName, ReactNode> = {
     <>
       <rect x="1.75" y="4" width="12.5" height="8" rx="1.25" />
       <path d="M4.5 6.75h.01M7 6.75h.01M9.5 6.75h.01M12 6.75h.01M5.5 9.5h5" />
+    </>
+  ),
+  history: <path d="M2.75 8a5.25 5.25 0 1 0 1.55-3.7M2.5 2.75v2.5H5M8 5.25V8l2 1.25" />,
+  database: (
+    <>
+      <ellipse cx="8" cy="4" rx="5" ry="1.75" />
+      <path d="M3 4v8c0 .97 2.24 1.75 5 1.75s5-.78 5-1.75V4M3 8c0 .97 2.24 1.75 5 1.75S13 8.97 13 8" />
     </>
   ),
   github: (

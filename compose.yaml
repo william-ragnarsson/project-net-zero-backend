@@ -1,0 +1,21 @@
+# Postgres for the run history (`make db` uses this when Docker or Podman is running).
+# The address matches NETZERO_DATABASE_URL in .env.example.
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: netzero
+      POSTGRES_PASSWORD: netzero
+      POSTGRES_DB: netzero
+    ports:
+      - "127.0.0.1:54320:5432"
+    volumes:
+      - netzero-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U netzero -d netzero"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  netzero-db:

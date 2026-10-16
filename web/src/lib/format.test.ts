@@ -3,11 +3,13 @@ import {
   formatBytes,
   formatCI,
   formatClock,
+  formatDate,
   formatGrams,
   formatInt,
   formatMass,
   formatP,
   formatPct,
+  formatTime,
   formatUsd,
   formatWhen,
   formatAgo,
@@ -92,9 +94,19 @@ describe('format', () => {
     expect(formatAgo(now + 5_000, now)).toBe('just now')
   })
 
-  it('formats file sizes', () => {
-    expect(formatBytes(812)).toBe('812 B')
-    expect(formatBytes(14_200)).toBe('14.2 kB')
-    expect(formatBytes(1_300_000)).toBe('1.3 MB')
+  it('writes a day, and the time of day on a 24-hour clock', () => {
+    const now = new Date(2026, 9, 13, 9, 0).getTime()
+    expect(formatDate(new Date(2026, 9, 7, 12).getTime(), now)).toBe('7 Oct')
+    expect(formatDate(new Date(2025, 11, 30, 12).getTime(), now)).toBe('30 Dec 2025')
+    expect(formatTime(new Date(2026, 9, 7, 14, 5).getTime())).toBe('14:05')
+    expect(formatTime(new Date(2026, 9, 7, 0, 30).getTime())).toBe('00:30')
+  })
+
+  it('sizes bytes', () => {
+    expect(formatBytes(0)).toBe('0 B')
+    expect(formatBytes(1023)).toBe('1023 B')
+    expect(formatBytes(1536)).toBe('1.5 kB')
+    expect(formatBytes(606_208)).toBe('592 kB')
+    expect(formatBytes(5 * 1024 ** 3)).toBe('5.0 GB')
   })
 })

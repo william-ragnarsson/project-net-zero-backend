@@ -7,6 +7,7 @@ rebuilds it from scratch. The frontend reducer mirrors these rules.
 from __future__ import annotations
 
 from collections.abc import Iterable
+from typing import Self
 
 from netzero.events import (
     EventBase,
@@ -24,7 +25,7 @@ class Projection:
         self._kwh_saved: dict[str, float] = {}  # accepted function -> kWh saved per 1M calls
 
     @classmethod
-    def empty(cls, run_id: str, *, created_ts: int, source: RunSource, mode: str) -> Projection:
+    def empty(cls, run_id: str, *, created_ts: int, source: RunSource, mode: str) -> Self:
         return cls(
             RunDetail(
                 id=run_id,
@@ -145,15 +146,20 @@ def project(lines: Iterable[str], run_id: str) -> RunDetail:
     return rebuild(lines, run_id).detail
 
 
-def rebuild(lines: Iterable[str], run_id: str) -> Projection:
-    """Rebuild the full ``Projection`` (detail + accumulators) from persisted lines."""
-    proj: Projection | None = None
+def rebuild[P: Projection](
+    lines: Iterable[str], run_id: str, projection: type[P] = Projection
+) -> P:
+    """Rebuild the full ``Projection`` (detail + accumulators) from persisted lines.
+
+    ``projection`` may be a subclass that folds more (the Postgres history does).
+    """
+    proj: P | None = None
     for line in lines:
         ev = parse_event(line)
         if proj is None:
             if ev.type != "run.created":  # type: ignore[union-attr]
                 raise ValueError("events.jsonl must start with run.created")
-            proj = Projection.empty(
+            proj = projection.empty(
                 run_id,
                 created_ts=ev.ts,
                 source=ev.data.source,

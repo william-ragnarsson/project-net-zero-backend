@@ -4,7 +4,7 @@ UV ?= uv
 NPM ?= npm
 PORT ?= 8000
 
-.PHONY: help setup check-uv run dev serve web test test-e2e test-web lint types record-demo demo-cassettes doctor clean
+.PHONY: help setup check-uv run dev serve web test test-e2e test-web lint types record-demo demo-cassettes doctor db db-stop clean
 
 help:
 	@echo "make setup        install python + web deps, warm the demo cache, run doctor"
@@ -17,6 +17,8 @@ help:
 	@echo "make record-demo  run the demo and save it as the bundled web replay"
 	@echo "make demo-cassettes  rebuild the demo cassettes from examples/demo-stories"
 	@echo "make doctor       check git, uv, node, power measurement"
+	@echo "make db           start Postgres for run history on 127.0.0.1:54320 (docker, podman or local)"
+	@echo "make db-stop      stop it; the data is kept"
 
 check-uv:
 	@command -v $(UV) >/dev/null 2>&1 || { \
@@ -72,6 +74,12 @@ demo-cassettes:
 
 doctor:
 	$(UV) run netzero doctor
+
+db:
+	@scripts/db.sh up
+
+db-stop:
+	@scripts/db.sh down
 
 clean:
 	rm -rf runs/ .netzero-cache/ web/dist/
