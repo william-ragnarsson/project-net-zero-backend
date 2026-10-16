@@ -1,0 +1,25 @@
+diff --git a/algos/primes.py b/algos/primes.py
+--- a/algos/primes.py
++++ b/algos/primes.py
+@@ -3,13 +3,11 @@
+ 
+ def primes_below(n):
+     """Return all primes p with 2 <= p < n, ascending."""
+-    primes = []
+-    for candidate in range(2, n):
+-        is_prime = True
+-        for divisor in range(2, candidate):
+-            if candidate % divisor == 0:
+-                is_prime = False
+-                break
+-        if is_prime:
+-            primes.append(candidate)
+-    return primes
++    if n < 3:
++        return []
++    sieve = bytearray([1]) * n
++    sieve[0] = sieve[1] = 0
++    for p in range(2, int(n ** 0.5) + 1):
++        if sieve[p]:
++            sieve[p * p :: p] = bytes(len(range(p * p, n, p)))
++    return [i for i, flag in enumerate(sieve) if flag]

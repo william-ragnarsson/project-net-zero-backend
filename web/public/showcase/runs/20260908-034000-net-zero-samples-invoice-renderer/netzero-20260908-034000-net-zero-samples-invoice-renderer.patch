@@ -1,0 +1,13 @@
+diff --git a/textkit/dedupe.py b/textkit/dedupe.py
+--- a/textkit/dedupe.py
++++ b/textkit/dedupe.py
+@@ -3,8 +3,4 @@
+ 
+ def dedupe_preserve_order(items):
+     """Return the unique items of ``items`` in first-seen order."""
+-    result = []
+-    for item in items:
+-        if item not in result:
+-            result.append(item)
+-    return result
++    return list(dict.fromkeys(items))

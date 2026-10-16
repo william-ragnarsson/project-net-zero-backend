@@ -1,0 +1,27 @@
+diff --git a/algos/graph.py b/algos/graph.py
+--- a/algos/graph.py
++++ b/algos/graph.py
+@@ -1,4 +1,6 @@
+ """Unweighted graphs."""
++
++from collections import deque
+ 
+ 
+ class Graph:
+@@ -12,11 +14,12 @@
+     def shortest_path_lengths(self, source):
+         """BFS distances from ``source`` to every reachable node."""
+         dist = {source: 0}
+-        queue = [source]
++        queue = deque([source])
+         while queue:
+-            node = queue.pop(0)
+-            for nxt in self.adj.get(node, []):
++            node = queue.popleft()
++            d = dist[node] + 1
++            for nxt in self.adj.get(node, ()):
+                 if nxt not in dist:
+-                    dist[nxt] = dist[node] + 1
++                    dist[nxt] = d
+                     queue.append(nxt)
+         return dist

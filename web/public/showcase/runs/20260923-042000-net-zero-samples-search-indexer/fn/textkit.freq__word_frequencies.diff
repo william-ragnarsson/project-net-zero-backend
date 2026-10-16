@@ -1,0 +1,19 @@
+diff --git a/textkit/freq.py b/textkit/freq.py
+--- a/textkit/freq.py
++++ b/textkit/freq.py
+@@ -1,12 +1,8 @@
+ """Word counts."""
++
++from collections import Counter
+ 
+ 
+ def word_frequencies(text):
+     """Count case-insensitive, whitespace-separated words in ``text``."""
+-    counts = {}
+-    for word in text.split():
+-        if word.lower() in counts:
+-            counts[word.lower()] += 1
+-        else:
+-            counts[word.lower()] = 1
+-    return counts
++    return dict(Counter(text.lower().split()))

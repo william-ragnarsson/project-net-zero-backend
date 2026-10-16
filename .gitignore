@@ -18,6 +18,7 @@ htmlcov/
 
 # netzero
 runs/
+!web/public/showcase/runs/
 .netzero-cache/
 .netzero-db/
 emissions.csv

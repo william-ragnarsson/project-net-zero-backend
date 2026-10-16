@@ -1,0 +1,78 @@
+{
+ "id": "20260930-104500-net-zero-samples-ledger-api",
+ "created_ts": 1790779500000,
+ "updated_ts": 1790779504527,
+ "state": "failed",
+ "source": {
+  "kind": "github",
+  "url": "https://github.com/net-zero-samples/ledger-api",
+  "ref": null
+ },
+ "mode": "live",
+ "functions_total": 0,
+ "functions_done": 0,
+ "counts_by_outcome": {},
+ "mean_reduction_pct": null,
+ "g_saved_per_1m_calls": 0.0,
+ "last_seq": 15,
+ "models": {
+  "triage": "claude-haiku-4-5",
+  "tests": "claude-haiku-4-5",
+  "tests_repair": "claude-haiku-4-5",
+  "rewrite": "claude-haiku-4-5",
+  "rewrite_repair": "claude-haiku-4-5"
+ },
+ "settings": {
+  "max_functions": 20,
+  "preselect": 8,
+  "n_trials": 16,
+  "trial_target_s": 0.75,
+  "alpha": 0.05,
+  "min_effect_pct": 5.0,
+  "candidates": [
+   "A",
+   "B",
+   "C"
+  ],
+  "country_iso": null
+ },
+ "assumptions": {
+  "eur_per_kwh": 0.2,
+  "eu_ets_eur_per_t": 70.0,
+  "vcm_eur_per_t": 15.0,
+  "default_calls_per_year": 1000000,
+  "notes": [
+   "electricity: indicative EU non-household price",
+   "EU ETS: indicative allowance price",
+   "VCM: indicative voluntary carbon market price"
+  ]
+ },
+ "power": {
+  "power_source": "tdp_estimate",
+  "badge": "estimated",
+  "method": "codecarbon_model",
+  "cpu_model": "Apple M3 Pro",
+  "tdp_w": 30.0,
+  "cpu_count": 12,
+  "p_core_w": 2.5,
+  "p_ram_w": 0.4,
+  "grid": {
+   "country_iso": "WORLD",
+   "kg_per_kwh": 0.475,
+   "source": "codecarbon world average"
+  },
+  "notes": [
+   "estimated from CodeCarbon's TDP model × measured CPU time"
+  ]
+ },
+ "triage": [],
+ "selection": null,
+ "functions": [],
+ "artifacts": null,
+ "error": {
+  "kind": "env_error",
+  "message": "dependency resolution failed",
+  "detail": "numpy==1.21.6 has no wheels for CPython 3.12"
+ },
+ "llm_cost_usd": 0.0
+}
