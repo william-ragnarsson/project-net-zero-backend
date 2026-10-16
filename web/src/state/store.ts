@@ -8,9 +8,23 @@ export interface RunSession {
   state: RunModel
   /** the last seq folded in by `hydrate`, where a live stream resumes */
   hydratedThroughSeq: number
+  /**
+   * Bumped by `hydrate` and by a discontinuous dispatch that changed the state. A view must
+   * not animate across an epoch change: the state jumped (a seek, a reconnect backlog).
+   */
+  epoch: number
   /** Replaces the state with a fresh reduction of `events` (history load, replay seek). */
   hydrate(events: readonly RunEvent[]): void
-  dispatchBatch(events: readonly RunEvent[]): void
+  /**
+   * Folds `events` in. Returns whether the state changed. With `discontinuous`, the epoch is
+   * bumped in the same update, but only when the state changed: an all-duplicate batch leaves
+   * the session untouched and returns false, so the caller keeps the flag for the next batch.
+   */
+  dispatchBatch(events: readonly RunEvent[], opts?: DispatchOptions): boolean
+}
+
+export interface DispatchOptions {
+  discontinuous?: boolean
 }
 
 export type RunSessionStore = StoreApi<RunSession>
@@ -19,16 +33,22 @@ export function createRunSession(): RunSessionStore {
   return createStore<RunSession>()((set) => ({
     state: initialRunModel(),
     hydratedThroughSeq: 0,
+    epoch: 0,
     hydrate: (events) => {
       const state = reduce(initialRunModel(), events)
-      set({ state, hydratedThroughSeq: state.lastSeq })
+      set((session) => ({ state, hydratedThroughSeq: state.lastSeq, epoch: session.epoch + 1 }))
     },
     // returning the same session object skips the notification when nothing changed
-    dispatchBatch: (events) =>
+    dispatchBatch: (events, opts) => {
+      let changed = false
       set((session) => {
         const state = reduce(session.state, events)
-        return state === session.state ? session : { state }
-      }),
+        if (state === session.state) return session
+        changed = true
+        return opts?.discontinuous === true ? { state, epoch: session.epoch + 1 } : { state }
+      })
+      return changed
+    },
   }))
 }
 

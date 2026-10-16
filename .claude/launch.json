@@ -1,0 +1,25 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "web", "run", "dev", "--", "--port", "5173", "--strictPort"],
+      "port": 5173
+    },
+    {
+      "name": "mockups",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5180",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "/private/tmp/claude-501/-Users-williamragnarsson-Documents-Programming-worktrees-project-net-zero-backend-net-zero-frontend-redesign-dd226c/d0be4ce3-d5fb-4d0a-873d-1faecbb614f4/scratchpad/mockups"
+      ],
+      "port": 5180
+    }
+  ]
+}

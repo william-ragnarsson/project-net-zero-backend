@@ -1,6 +1,6 @@
 import type { TrendPoint } from '../gen/events'
 import { formatDate, formatGrams } from '../lib/format'
-import { RUN_STATE } from './labels'
+import { runState, TONE_FILL } from './labels'
 
 /** A project's recent runs as small bars, oldest first: height is CO₂ saved per 1M calls. */
 export function MiniTrend({ points }: { points: readonly TrendPoint[] }) {
@@ -8,21 +8,17 @@ export function MiniTrend({ points }: { points: readonly TrendPoint[] }) {
   return (
     <div className="flex h-10 items-end gap-[3px]" aria-hidden="true">
       {points.map((p) => {
-        const saved = p.state === 'completed' && max > 0 ? (p.g_saved_per_1m_calls / max) * 100 : 0
-        const color = p.state === 'completed' ? (saved > 0 ? 'bg-neon/70' : 'bg-[#3a3a3a]') : undefined
+        const done = p.state === 'completed'
+        const saved = done && max > 0 ? (p.g_saved_per_1m_calls / max) * 100 : 0
+        const fill = done ? (saved > 0 ? 'bg-accent' : 'bg-control') : TONE_FILL[runState(p.state).tone]
         return (
           <span
             key={p.run_id}
             title={`${formatDate(p.created_ts)}: ${
-              p.state === 'completed'
-                ? `${formatGrams(p.g_saved_per_1m_calls)} saved per 1M calls`
-                : RUN_STATE[p.state].text
+              done ? `${formatGrams(p.g_saved_per_1m_calls)} saved per 1M calls` : runState(p.state).text
             }`}
-            className={`w-full max-w-[10px] flex-1 ${color ?? ''}`}
-            style={{
-              height: p.state === 'completed' ? `max(2px, ${saved}%)` : '3px',
-              ...(color === undefined && { backgroundColor: RUN_STATE[p.state].color }),
-            }}
+            className={`w-full max-w-[10px] flex-1 rounded-sm ${fill}`}
+            style={{ height: done ? `max(2px, ${saved}%)` : '3px' }}
           />
         )
       })}

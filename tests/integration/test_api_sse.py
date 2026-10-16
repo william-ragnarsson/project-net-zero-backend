@@ -14,10 +14,12 @@ import pytest
 import uvicorn
 from fastapi import FastAPI
 
+from netzero.api import routes_events
 from netzero.api.app import create_app
 from netzero.events import Heartbeat, RunEventAdapter
 from netzero.pipeline.grammar import assert_grammar
 from netzero.pipeline.orchestrator import RunManager
+from netzero.pipeline.store import FileLock, read_complete_lines
 from tests.integration.helpers import (
     event_frames,
     event_lines,
@@ -124,7 +126,10 @@ async def test_resume_after_the_run_ended(api_factory):
         assert r.status_code == 200
         return [int(f["id"]) for f in event_frames(parse_sse(r.text))]
 
-    assert seqs(await api.client.get(url, params={"after": 3})) == list(range(4, n + 1))
+    r = await api.client.get(url, params={"after": 3})
+    assert seqs(r) == list(range(4, n + 1))
+    # the replay reaches the terminal event, so there is nothing to catch up to
+    assert not any(f["event"] == "heartbeat" for f in parse_sse(r.text))
     assert seqs(await api.client.get(url, headers={"Last-Event-ID": str(n - 2)})) == [n - 1, n]
     # both given: the later position wins
     r = await api.client.get(url, params={"after": 2}, headers={"Last-Event-ID": "5"})
@@ -151,17 +156,76 @@ async def test_live_follow_with_heartbeats_and_selection(api_factory):
     r = await asyncio.wait_for(stream, 5)
     frames = parse_sse(r.text)
     beats = [f for f in frames if f["event"] == "heartbeat"]
-    assert beats, "no heartbeat while the run waited"
+    # the first follows the replayed log; the rest came while the run waited
+    assert len(beats) > 1, "no heartbeat while the run waited"
     for f in beats:
         assert f["id"] is None  # never resumable, never persisted
-        hb = Heartbeat.model_validate_json(f["data"])
-        assert hb.run_id == run_id and hb.state == "awaiting_selection"
+        assert Heartbeat.model_validate_json(f["data"]).run_id == run_id
+    for f in beats[1:]:
+        assert Heartbeat.model_validate_json(f["data"]).state == "awaiting_selection"
     lines = [f["data"] for f in event_frames(frames)]
     assert lines == event_lines(api.manager, run_id)
     assert_grammar(lines)
     sel = next(json.loads(x) for x in lines if '"run.selection.confirmed"' in x)
     assert sel["data"] == {"function_ids": [FAST], "auto": False}
     assert ctx.bus.n_subscribers == 0
+
+
+async def test_a_heartbeat_follows_the_backlog(api_factory):
+    api = await api_factory()  # the idle heartbeat is 15 s away
+    run_id = await start_run(api)
+    await awaiting_selection(api, run_id)
+    n = len(event_lines(api.manager, run_id))
+    ctx = api.manager.live(run_id)
+    stream = asyncio.create_task(api.client.get(f"/api/runs/{run_id}/events", params={"after": 2}))
+    await wait_until(lambda: ctx.bus.n_subscribers == 1)
+    r = await api.client.post(f"/api/runs/{run_id}/select", json={"function_ids": [FAST]})
+    assert r.status_code == 200
+
+    frames = parse_sse((await asyncio.wait_for(stream, 5)).text)
+    at = [i for i, f in enumerate(frames) if f["event"] == "heartbeat"]
+    assert len(at) == 1
+    hb = Heartbeat.model_validate_json(frames[at[0]]["data"])
+    before = [int(f["id"]) for f in event_frames(frames[: at[0]])]
+    # the whole backlog first, then a heartbeat whose last_seq the client now has
+    assert before[: n - 2] == list(range(3, n + 1))
+    assert hb.last_seq >= before[-1]
+    assert json.loads(event_frames(frames)[-1]["data"])["type"] == "run.completed"
+
+
+async def test_a_tailed_run_sends_the_same_heartbeat(api_factory, monkeypatch):
+    """A run another process drives (the CLI) is read from its file, and caught up the same way."""
+    api = await api_factory()
+    run_id = await start_run(api, auto_select=True)
+    await asyncio.wait_for(api.manager.wait(run_id), 5)
+    paths = api.manager.store.paths(run_id)
+    lines = event_lines(api.manager, run_id)
+    k = len(lines) - 3
+    paths.events.write_text("".join(f"{line}\n" for line in lines[:k]))
+
+    first_read = asyncio.Event()
+
+    def reading(path, offset=0):
+        first_read.set()
+        return read_complete_lines(path, offset)
+
+    monkeypatch.setattr(routes_events, "read_complete_lines", reading)
+    owner = FileLock(paths.lock)
+    assert owner.try_acquire()  # as if another process drove the run
+    try:
+        stream = asyncio.create_task(api.client.get(f"/api/runs/{run_id}/events"))
+        await asyncio.wait_for(first_read.wait(), 5)
+        with paths.events.open("a") as f:
+            f.writelines(f"{line}\n" for line in lines[k:])
+        frames = parse_sse((await asyncio.wait_for(stream, 5)).text)
+    finally:
+        owner.release()
+
+    assert [int(f["id"]) for f in event_frames(frames)] == list(range(1, len(lines) + 1))
+    at = next(i for i, f in enumerate(frames) if f["event"] == "heartbeat")
+    assert [int(f["id"]) for f in event_frames(frames[:at])] == list(range(1, k + 1))
+    hb = Heartbeat.model_validate_json(frames[at]["data"])
+    assert hb.run_id == run_id and hb.last_seq == k
 
 
 async def test_two_followers_get_the_same_events(api_factory):

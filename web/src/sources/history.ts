@@ -35,14 +35,13 @@ async function getJson<T>(url: string, signal?: AbortSignal): Promise<T> {
   return body as T
 }
 
-/** The stored log of one run, for /replay?src=. */
+/** The stored log of one run, which the stored run's page replays. */
 export const storedRunSrc = (runId: string): string => `${BASE}/runs/${encodeURIComponent(runId)}/events.jsonl`
 
 /** The replay of a stored run: played from the start, or opened paused right after `seq`. */
-export function storedReplayHref(runId: string, seq?: number): string {
-  const params = new URLSearchParams({ src: storedRunSrc(runId) })
-  if (seq !== undefined) params.set('at', String(seq))
-  return `/replay${readableQuery(params)}`
+export function storedReplayHref(projectId: string, runId: string, seq?: number): string {
+  const path = `/history/${encodeURIComponent(projectId)}/runs/${encodeURIComponent(runId)}`
+  return seq === undefined ? path : `${path}${readableQuery(new URLSearchParams({ at: String(seq) }))}`
 }
 
 export const useHistoryStatus = () =>

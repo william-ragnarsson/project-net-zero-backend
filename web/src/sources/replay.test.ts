@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { ReplayRef } from '../gen/events'
 import { initialRunModel, reduce } from '../state/reducer'
 import type { Scheduler } from '../state/store'
 import { buildSyntheticRun } from '../synth/scenario'
-import { createReplay, parseAt, parseSpeed, readableQuery, replayHref, sameOriginSrc } from './replay'
+import { createReplay, parseAt, parseSpeed, readableQuery, replayHref, resolveReplayRedirect, sameOriginSrc } from './replay'
 
 const { events } = buildSyntheticRun()
 
@@ -23,8 +24,8 @@ describe('replay URL parameters', () => {
     expect(parseSpeed(null)).toBe(1)
   })
 
-  it('links to a replay with a readable src', () => {
-    expect(replayHref('/replays/a b&c.events.jsonl')).toBe('/replay?src=/replays/a+b%26c.events.jsonl')
+  it('links to a replay by its id, with a readable query', () => {
+    expect(replayHref('a b')).toBe('/replays/a%20b')
     expect(readableQuery(new URLSearchParams({ src: '/replays/x.jsonl', speed: '4' }))).toBe(
       '?src=/replays/x.jsonl&speed=4',
     )
@@ -37,6 +38,35 @@ describe('replay URL parameters', () => {
     expect(sameOriginSrc('http://127.0.0.1:8000/replays/x.jsonl', origin)).toBe('/replays/x.jsonl')
     expect(sameOriginSrc('https://evil.example/x.jsonl', origin)).toBeNull()
     expect(sameOriginSrc('//evil.example/x.jsonl', origin)).toBeNull()
+  })
+})
+
+describe('resolveReplayRedirect', () => {
+  const origin = 'http://localhost:5173'
+  const index: ReplayRef[] = [
+    { id: 'synthetic', title: 'Synthetic', description: '', src: '/replays/synthetic.events.jsonl', functions: 6, duration_ms: 1000 },
+  ]
+  const go = (query: string) => resolveReplayRedirect(index, new URLSearchParams(query), origin)
+
+  it('sends an old ?src= link to the page of the replay with that file', () => {
+    expect(go('src=/replays/synthetic.events.jsonl')).toBe('/replays/synthetic')
+    expect(go(`src=${origin}/replays/synthetic.events.jsonl`)).toBe('/replays/synthetic')
+  })
+
+  it('sends a file that is not in the index to the list', () => {
+    expect(go('src=/replays/other.events.jsonl')).toBe('/replays')
+    expect(go('')).toBe('/replays')
+  })
+
+  it('never follows a file on another origin', () => {
+    expect(go('src=https://evil.example/replays/synthetic.events.jsonl')).toBe('/replays')
+    expect(go('src=//evil.example/replays/synthetic.events.jsonl')).toBe('/replays')
+  })
+
+  it('keeps speed, at and node and drops the rest', () => {
+    expect(go('src=/replays/synthetic.events.jsonl&speed=4&at=120&node=f/x&extra=1')).toBe(
+      '/replays/synthetic?speed=4&at=120&node=f/x',
+    )
   })
 })
 

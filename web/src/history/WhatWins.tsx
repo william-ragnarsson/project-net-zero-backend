@@ -2,50 +2,50 @@
 // rejected ones were thrown out.
 import type { CandidateStat, RejectStat } from '../gen/events'
 import { formatInt } from '../lib/format'
-import { NEON } from '../timeline/theme'
 import { REJECT_REASON } from './labels'
 
 // each stage is a subset of the one before it, so the bars nest
 const STAGES = [
-  { key: 'proposed', text: 'written', color: '#1f1f1f' },
-  { key: 'eligible', text: 'passed the checks', color: '#353535' },
-  { key: 'significant', text: 'measurably better', color: '#00cc6a66' },
-  { key: 'accepted', text: 'kept', color: NEON },
+  { key: 'proposed', text: 'Written', fill: 'bg-hover' },
+  { key: 'eligible', text: 'Passed the checks', fill: 'bg-control' },
+  { key: 'significant', text: 'Measurably better', fill: 'bg-accent-soft' },
+  { key: 'accepted', text: 'Kept', fill: 'bg-accent' },
 ] as const
 
 export function StrategyFunnel({ candidates }: { candidates: readonly CandidateStat[] }) {
+  if (candidates.length === 0) return <p className="text-sm text-ink-3">No rewrites written yet.</p>
   const max = Math.max(1, ...candidates.map((c) => c.proposed))
   return (
     <div>
       <ul className="space-y-5">
         {candidates.map((c) => (
           <li key={c.candidate_id}>
-            <div className="flex items-baseline justify-between gap-4 text-sm">
+            <div className="flex items-baseline justify-between gap-4 text-base">
               <span className="min-w-0 truncate">
-                <span className="text-white">Rewrite {c.candidate_id}</span>
-                <span className="text-muted"> · {c.hint}</span>
+                <span className="font-medium text-ink">Rewrite {c.candidate_id}</span>
+                <span className="text-ink-3"> · {c.hint}</span>
               </span>
-              <span className="shrink-0 font-mono text-xs tabular-nums text-gray-300">
-                <span className="text-neon">{formatInt(c.accepted)}</span> kept of {formatInt(c.proposed)}
+              <span className="shrink-0 text-sm tabular-nums text-ink-3">
+                <span className="font-medium text-accent">{formatInt(c.accepted)}</span> kept of {formatInt(c.proposed)}
               </span>
             </div>
-            <div className="relative mt-2 h-3">
+            <div className="relative mt-2 h-2.5 overflow-hidden rounded-full">
               {STAGES.map((stage) => (
                 <span
                   key={stage.key}
-                  title={`${formatInt(c[stage.key])} ${stage.text}`}
-                  className="absolute inset-y-0 left-0"
-                  style={{ width: `${(c[stage.key] / max) * 100}%`, backgroundColor: stage.color }}
+                  title={`${formatInt(c[stage.key])} ${stage.text.toLowerCase()}`}
+                  className={`absolute inset-y-0 left-0 rounded-full ${stage.fill}`}
+                  style={{ width: `${(c[stage.key] / max) * 100}%` }}
                 />
               ))}
             </div>
           </li>
         ))}
       </ul>
-      <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 font-mono text-[11px] text-muted">
+      <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs text-ink-3">
         {STAGES.map((stage) => (
           <span key={stage.key} className="flex items-center gap-2">
-            <span className="block h-2 w-3" style={{ backgroundColor: stage.color, outline: '1px solid #2a2a2a' }} />
+            <span aria-hidden="true" className={`block h-2 w-3 rounded-sm border border-line ${stage.fill}`} />
             {stage.text}
           </span>
         ))}
@@ -55,17 +55,17 @@ export function StrategyFunnel({ candidates }: { candidates: readonly CandidateS
 }
 
 export function RejectReasons({ rejections }: { rejections: readonly RejectStat[] }) {
-  if (rejections.length === 0) return <p className="text-sm text-muted">No rewrite was rejected.</p>
+  if (rejections.length === 0) return <p className="text-sm text-ink-3">No rewrite was rejected.</p>
   const max = Math.max(1, ...rejections.map((r) => r.count))
   return (
     <ul className="space-y-3">
       {rejections.map((r) => (
-        <li key={r.reason} className="grid grid-cols-[10rem_minmax(0,1fr)_2.5rem] items-center gap-3 text-sm">
-          <span className="truncate text-gray-300">{REJECT_REASON[r.reason]}</span>
-          <span className="block h-2 bg-[#161616]">
-            <span className="block h-full bg-fail/60" style={{ width: `${(r.count / max) * 100}%` }} />
+        <li key={r.reason} className="grid grid-cols-[10rem_minmax(0,1fr)_2.5rem] items-center gap-3 text-base">
+          <span className="truncate text-ink-2">{REJECT_REASON[r.reason]}</span>
+          <span className="block h-2 overflow-hidden rounded-full bg-hover">
+            <span className="block h-full rounded-full bg-fail-soft" style={{ width: `${(r.count / max) * 100}%` }} />
           </span>
-          <span className="text-right font-mono text-xs tabular-nums text-muted">{formatInt(r.count)}</span>
+          <span className="text-right text-sm tabular-nums text-ink-3">{formatInt(r.count)}</span>
         </li>
       ))}
     </ul>

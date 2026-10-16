@@ -1,122 +1,82 @@
-// /replay?src=&speed=&at=&node= plays a recorded events.jsonl through the same store a live run
-// uses, drawn as the timeline; `node` is the timeline node the viewer picked.
-import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
-import { useStore } from 'zustand'
+// /replays/:replayId?speed=&at=&node= plays one recorded run from the bundled index.
+import { Link, useParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
-import { ReplayControls } from '../components/ReplayControls'
-import { ReplayList } from '../components/ReplayList'
-import { formatInt } from '../lib/format'
+import { useTitle } from '../lib/useTitle'
+import { ReplayPlayer } from '../replay/ReplayPlayer'
 import { useReplayFile, useReplayIndex } from '../sources/queries'
-import { createReplay, parseAt, parseSpeed, readableQuery, sameOriginSrc, type ReplayAt } from '../sources/replay'
-import type { Speed } from '../sources/replayDriver'
-import type { ReplayFile } from '../sources/replayFile'
-import { Timeline } from '../timeline/Timeline'
+import { Button } from '../ui/Button'
+import { Delayed } from '../ui/Delayed'
+import { EmptyState } from '../ui/EmptyState'
+import { InlineNotice } from '../ui/InlineNotice'
+import { Page } from '../ui/Page'
+
+const CRUMBS = [{ label: 'Replays', to: '/replays' }]
+
+const Loading = () => (
+  <Delayed>
+    <p className="text-base text-ink-3">Loading</p>
+  </Delayed>
+)
+
+function Failed({ text, retry }: { text: string; retry: () => void }) {
+  return (
+    <InlineNotice
+      tone="fail"
+      action={
+        <Button size="sm" onClick={retry}>
+          Retry
+        </Button>
+      }
+    >
+      {text}
+    </InlineNotice>
+  )
+}
 
 export function ReplayPage() {
-  const [params] = useSearchParams()
-  const navigate = useNavigate()
-  const raw = params.get('src')
+  const { replayId = '' } = useParams()
+  const index = useReplayIndex()
+  const entry = index.data?.find((r) => r.id === replayId)
+  useTitle(entry?.title ?? 'Replays')
 
-  if (raw === null) {
+  if (index.isPending) {
     return (
-      <>
-        <PageHeader label="Replays" title="Recorded runs">
-          Each one plays back event by event, as it streamed when it ran.
-        </PageHeader>
-        <section className="px-6 py-12 md:px-12">
-          <ReplayList />
-        </section>
-      </>
+      <Page width="wide">
+        <Loading />
+      </Page>
     )
   }
-
-  const src = sameOriginSrc(raw, window.location.origin)
-  if (src === null) {
+  if (index.isError) {
     return (
-      <PageHeader label="Replay" title="This replay is not served here.">
-        Replays load from this site only; <code className="font-mono text-sm text-gray-300">{raw}</code> points
-        elsewhere.
-      </PageHeader>
+      <Page width="wide">
+        <PageHeader title="Replay" crumbs={CRUMBS} />
+        <Failed text="Can’t load this replay" retry={() => void index.refetch()} />
+      </Page>
     )
   }
-
-  // the speed and the picked node land in the URL, so a shared link opens the same way
-  const setParam = (key: string, value: string) => {
-    const next = new URLSearchParams(params)
-    next.set(key, value)
-    void navigate({ search: readableQuery(next) }, { replace: true })
+  if (entry === undefined) {
+    return (
+      <Page>
+        <PageHeader title="Replay not found" />
+        <Link to="/replays" className="text-base text-ink-2 underline underline-offset-2 hover:text-ink">
+          All replays
+        </Link>
+      </Page>
+    )
   }
-
   return (
-    <ReplayLoader
-      key={src}
-      src={src}
-      speed={parseSpeed(params.get('speed'))}
-      at={parseAt(params.get('at'))}
-      node={params.get('node')}
-      onSpeedChange={(speed) => setParam('speed', String(speed))}
-      onSelectNode={(id) => setParam('node', id)}
-    />
+    <Page width="wide">
+      <PageHeader title={entry.title} crumbs={CRUMBS} meta={entry.description} />
+      <ReplayLoader key={entry.src} src={entry.src} />
+    </Page>
   )
 }
 
-interface ReplayProps {
-  src: string
-  speed: Speed
-  at: ReplayAt | null
-  node: string | null
-  onSpeedChange: (speed: Speed) => void
-  onSelectNode: (id: string) => void
-}
-
-function ReplayLoader(props: ReplayProps) {
-  const file = useReplayFile(props.src)
-  if (file.isPending) return <PageHeader label="Replay" title="Loading the replay" />
-  if (file.isError) {
-    return (
-      <PageHeader label="Replay" title="Could not load this replay.">
-        <code className="font-mono text-sm text-fail">{file.error.message}</code>
-      </PageHeader>
-    )
-  }
-  if (file.data.events.length === 0) {
-    return (
-      <PageHeader label="Replay" title="This replay has no events.">
-        <code className="font-mono text-sm text-gray-300">{props.src}</code>
-      </PageHeader>
-    )
-  }
-  return <ReplayView {...props} file={file.data} />
-}
-
-/** Mounted once per loaded file: the speed and position from the URL only set where it opens. */
-function ReplayView({ src, speed, at, node, onSpeedChange, onSelectNode, file }: ReplayProps & { file: ReplayFile }) {
-  const [replay] = useState(() => createReplay(file.events, { speed, at }))
-  useEffect(() => {
-    if (replay.autoplay) replay.driver.play()
-    return replay.stop
-  }, [replay])
-
-  const model = useStore(replay.session, (s) => s.state)
-  const ref = useReplayIndex().data?.find((r) => r.src === src)
-
-  return (
-    <div className="flex h-[calc(100dvh-4rem-1px)] min-h-[34rem] flex-col">
-      <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-1 border-b border-dark-border px-6 pb-4 pt-6 md:px-12">
-        <div className="min-w-0">
-          <p className="label">Replay</p>
-          <h1 className="mt-2 truncate text-2xl font-light tracking-[-0.02em] text-white">{ref?.title ?? src}</h1>
-        </div>
-        <p className="pb-1 font-mono text-xs text-muted">
-          {model.runId ?? src} · {formatInt(file.events.length)} events
-          {file.skipped > 0 && <span className="text-caution"> · {formatInt(file.skipped)} lines skipped</span>}
-        </p>
-      </header>
-      <ReplayControls driver={replay.driver} onSpeedChange={onSpeedChange} />
-      <div className="min-h-0 flex-1">
-        <Timeline model={model} selectedId={node} onSelect={onSelectNode} />
-      </div>
-    </div>
-  )
+/** Fetches one events.jsonl and plays it. The stored runs in /history use it too. */
+export function ReplayLoader({ src }: { src: string }) {
+  const file = useReplayFile(src)
+  if (file.isPending) return <Loading />
+  if (file.isError) return <Failed text="Can’t load this replay" retry={() => void file.refetch()} />
+  if (file.data.events.length === 0) return <EmptyState title="This replay has no events" />
+  return <ReplayPlayer events={file.data.events} />
 }

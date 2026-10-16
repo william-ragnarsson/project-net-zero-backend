@@ -1,14 +1,43 @@
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
+import { Link } from 'react-router'
+import { StatusLine } from './StatusLine'
 
-/** The heading block every page starts with. */
-export function PageHeader({ label, title, children }: { label: ReactNode; title: ReactNode; children?: ReactNode }) {
+/** Every page starts with this: the title (or breadcrumb), one meta line, up to two actions. */
+export function PageHeader({
+  title,
+  crumbs,
+  meta,
+  actions,
+  status,
+}: {
+  title: ReactNode
+  crumbs?: { label: string; to: string }[]
+  meta?: ReactNode
+  actions?: ReactNode
+  status?: string | null
+}) {
   return (
-    <header className="border-b border-dark-border px-6 pb-8 pt-12 md:px-12 md:pt-16">
-      <p className="label">{label}</p>
-      <h1 className="mt-4 text-balance text-[clamp(1.9rem,3.4vw,2.9rem)] font-light leading-[1.08] tracking-[-0.03em] text-white">
-        {title}
-      </h1>
-      {children !== undefined && <div className="mt-4 max-w-2xl leading-relaxed text-gray-400">{children}</div>}
+    <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 pb-6 lg:pb-8">
+      <div className="min-w-0">
+        {crumbs !== undefined && crumbs.length > 0 ? (
+          <nav aria-label="Breadcrumb" className="flex min-w-0 items-baseline gap-2 text-lg tracking-tight">
+            {crumbs.map((c) => (
+              <Fragment key={c.to}>
+                <Link to={c.to} className="text-ink-2 hover:text-ink">
+                  {c.label}
+                </Link>
+                <span className="text-ink-3">/</span>
+              </Fragment>
+            ))}
+            <h1 className="truncate font-semibold text-ink">{title}</h1>
+          </nav>
+        ) : (
+          <h1 className="text-title font-semibold tracking-tight text-ink">{title}</h1>
+        )}
+        {meta !== undefined && <div className="mt-1 text-base text-ink-2">{meta}</div>}
+      </div>
+      {actions !== undefined && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+      <StatusLine status={status} />
     </header>
   )
 }

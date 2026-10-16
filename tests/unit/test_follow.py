@@ -32,6 +32,11 @@ async def take(gen: AsyncIterator[Item], n: int) -> list[Item]:
     return [await anext(gen) for _ in range(n)]
 
 
+async def caught_up(gen: AsyncIterator[Item]) -> None:
+    """The ``None`` that comes as soon as the file is replayed (a heartbeat's cue)."""
+    assert await anext(gen) is None
+
+
 async def drain(gen: AsyncIterator[Item]) -> list[Item]:
     """Everything until the generator returns (``None`` idles are kept)."""
     return [item async for item in gen]
@@ -49,6 +54,7 @@ async def test_replays_the_file_then_streams_live_events(ctx: RunContext) -> Non
     replayed = await take(gen, 5)
     assert seqs(replayed) == [1, 2, 3, 4, 5]
     assert [line for _, line in replayed] == read_lines(ctx)  # type: ignore[misc]
+    await caught_up(gen)
 
     async def producer() -> None:
         for i in range(20):
@@ -84,6 +90,7 @@ async def test_after_skips_what_the_client_has(ctx: RunContext) -> None:
         log(ctx, str(i))
     gen = follow(ctx, 4, idle_s=1.0)
     assert seqs(await take(gen, 2)) == [5, 6]
+    await caught_up(gen)
     log(ctx, "live")
     assert seqs(await take(gen, 1)) == [7]
     await gen.aclose()
@@ -94,6 +101,7 @@ async def test_after_beyond_the_log_waits_for_new_events(ctx: RunContext) -> Non
     ctx.emit_created()
     log(ctx, "x")
     gen = follow(ctx, 2, idle_s=1.0)
+    await caught_up(gen)  # nothing to replay
     nxt = asyncio.ensure_future(anext(gen))
     await asyncio.sleep(0)
     assert not nxt.done()
@@ -105,6 +113,7 @@ async def test_after_beyond_the_log_waits_for_new_events(ctx: RunContext) -> Non
 async def test_idle_yields_none(ctx: RunContext) -> None:
     ctx.emit_created()
     gen = follow(ctx, 1, idle_s=0.02)
+    await caught_up(gen)
     assert await anext(gen) is None
     assert await anext(gen) is None
     log(ctx, "wake")
@@ -117,7 +126,7 @@ async def test_returns_after_a_terminal_event_in_the_file(ctx: RunContext) -> No
     ctx.emit_created()
     fail(ctx)
     items = await drain(follow(ctx, 0, idle_s=1.0))
-    assert seqs(items) == [1, 2, 3]
+    assert items == [(seq, line) for seq, line in zip([1, 2, 3], read_lines(ctx), strict=True)]
     assert ctx.bus.n_subscribers == 0
 
 
@@ -125,6 +134,7 @@ async def test_returns_after_a_live_terminal_event(ctx: RunContext) -> None:
     ctx.emit_created()
     gen = follow(ctx, 0, idle_s=1.0)
     assert seqs(await take(gen, 1)) == [1]
+    await caught_up(gen)
     fail(ctx)
     assert seqs(await drain(gen)) == [2, 3]
 
@@ -133,6 +143,7 @@ async def test_returns_when_the_bus_closes(ctx: RunContext) -> None:
     ctx.emit_created()
     gen = follow(ctx, 0, idle_s=1.0)
     assert seqs(await take(gen, 1)) == [1]
+    await caught_up(gen)
     log(ctx, "last words")
     ctx.close()  # no terminal event: e.g. the process is shutting down
     assert seqs(await drain(gen)) == [2]
@@ -159,6 +170,7 @@ async def test_overflow_ends_the_stream_and_the_client_can_resume(
     monkeypatch.setattr(ctx.bus, "subscribe", tiny)
     gen = follow(ctx, 0, idle_s=1.0)
     assert seqs(await take(gen, 1)) == [1]
+    await caught_up(gen)
     for i in range(5):  # 2 fit, the rest overflow
         log(ctx, str(i))
     got = seqs(await drain(gen))
@@ -189,6 +201,7 @@ async def test_a_gap_in_the_queue_is_filled_from_the_file(
     monkeypatch.setattr(ctx.bus, "subscribe", lossy)
     gen = follow(ctx, 0, idle_s=1.0)
     assert seqs(await take(gen, 1)) == [1]
+    await caught_up(gen)
     for i in range(3):
         log(ctx, str(i))
     items = await take(gen, 3)
@@ -214,6 +227,7 @@ async def test_queued_items_already_replayed_are_skipped(
     monkeypatch.setattr(ctx.bus, "subscribe", with_stale_items)
     gen = follow(ctx, 0, idle_s=1.0)
     assert seqs(await take(gen, 2)) == [1, 2]
+    await caught_up(gen)
     log(ctx, "b")
     assert seqs(await take(gen, 1)) == [3]
     await gen.aclose()

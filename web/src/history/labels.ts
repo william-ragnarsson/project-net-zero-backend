@@ -1,40 +1,57 @@
-// How stored values read on the history pages. Outcome colors come from the timeline's theme.
-import type { RejectReason, RunState } from '../gen/events'
-import { CAUTION, FAIL, NEON } from '../timeline/theme'
+// How stored values read on the history pages, in the words and tones the rest of the app uses.
+import type { FunctionOutcome, RejectReason, RunState } from '../gen/events'
+import { stateLabel } from '../lib/runs'
+import type { BadgeTone } from '../ui/Badge'
 
-const AT_REST = '#d4d4d4'
-const DIM = '#6b6b6b'
-
-export const RUN_STATE: Readonly<Record<RunState, { text: string; color: string }>> = {
-  created: { text: 'starting', color: NEON },
-  cloning: { text: 'cloning', color: NEON },
-  installing: { text: 'installing', color: NEON },
-  discovering: { text: 'discovering', color: NEON },
-  triaging: { text: 'triaging', color: NEON },
-  awaiting_selection: { text: 'waiting for a selection', color: CAUTION },
-  optimizing: { text: 'optimizing', color: NEON },
-  finalizing: { text: 'finalizing', color: NEON },
-  completed: { text: 'completed', color: AT_REST },
-  failed: { text: 'failed', color: FAIL },
-  cancelled: { text: 'cancelled', color: DIM },
-  interrupted: { text: 'interrupted', color: CAUTION },
+const STATE_TONE: Readonly<Partial<Record<RunState, BadgeTone>>> = {
+  awaiting_selection: 'caution',
+  completed: 'success',
+  failed: 'fail',
+  cancelled: 'neutral',
+  interrupted: 'neutral',
 }
+
+/** A stored run's state as a badge. Every state not listed is still going. */
+export const runState = (state: RunState): { text: string; tone: BadgeTone } => ({
+  text: stateLabel(state),
+  tone: STATE_TONE[state] ?? 'live',
+})
 
 const ENDED: ReadonlySet<RunState> = new Set(['completed', 'failed', 'cancelled', 'interrupted'])
 
 /** Still going, or waiting on someone: the history may change while you look. */
 export const isOpen = (state: RunState): boolean => !ENDED.has(state)
 
+/** A small dot or bar in a tone's colour. */
+export const TONE_FILL: Readonly<Record<BadgeTone, string>> = {
+  success: 'bg-accent',
+  live: 'bg-accent-soft',
+  caution: 'bg-caution-soft',
+  fail: 'bg-fail-soft',
+  neutral: 'bg-control',
+}
+
+export const OUTCOME: Readonly<Record<FunctionOutcome, { text: string; tone: BadgeTone }>> = {
+  accepted: { text: 'Accepted', tone: 'success' },
+  no_significant_win: { text: 'No significant win', tone: 'neutral' },
+  all_rejected: { text: 'All rejected', tone: 'fail' },
+  reverted: { text: 'Reverted', tone: 'fail' },
+  skipped_untestable: { text: 'Skipped', tone: 'caution' },
+  skipped_capture: { text: 'Skipped', tone: 'caution' },
+  failed: { text: 'Failed', tone: 'fail' },
+  cancelled: { text: 'Cancelled', tone: 'neutral' },
+}
+
 export const REJECT_REASON: Readonly<Record<RejectReason, string>> = {
-  syntax: 'syntax error',
-  static_rule: 'broke a static rule',
-  tests_failed: 'tests failed',
-  differential_mismatch: 'different output',
-  timeout: 'timed out',
-  llm_error: 'model error',
-  identical: 'same as the original',
-  bench_failed: 'bench failed',
-  measurement_inconsistent: 'inconsistent measurement',
+  syntax: 'Syntax error',
+  static_rule: 'Broke a static rule',
+  tests_failed: 'Tests failed',
+  differential_mismatch: 'Different output',
+  timeout: 'Timed out',
+  llm_error: 'Model error',
+  identical: 'Same as the original',
+  bench_failed: 'Bench failed',
+  measurement_inconsistent: 'Inconsistent measurement',
 }
 
 /** `module:qualname` as stored in `function_id`. */

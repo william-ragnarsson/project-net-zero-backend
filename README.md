@@ -11,8 +11,7 @@ calls times a fixed power figure and grid factor; see
 repo and the evidence for every decision.
 
 It is a FastAPI + SSE backend and a Typer CLI (the `netzero` package), plus a
-Vite/React web UI in `web/` that is still being built. It started as a
-HackEurope project.
+Vite/React web UI in `web/`. It started as a HackEurope project.
 
 ## Quick start
 
@@ -22,7 +21,7 @@ HackEurope project.
 - [uv](https://docs.astral.sh/uv/) and git. uv installs Python 3.12 for you.
 - Node 20+ and npm, for the web UI.
 - Optional: an Anthropic API key. Live runs need one; demo and replay do not.
-- Optional: Docker, Podman or a local Postgres 17, for the History tab
+- Optional: Docker, Podman or a local Postgres 17, for the History pages
   (see [Run history in Postgres](#run-history-in-postgres)).
 
 ### Setup and run
@@ -41,7 +40,7 @@ Open <http://127.0.0.1:8000>. Set a different port with `make run PORT=9000`.
 | --- | --- | --- |
 | Live | API key | Clones a public GitHub repo and runs the full pipeline with Claude. Web UI, or `uv run netzero run https://github.com/<owner>/<repo>`. |
 | Demo | nothing | Runs the full pipeline on the bundled repo in `examples/demo-repo`. The model replies come from **hand-written cassettes** (see [Demo repo and cassettes](#demo-repo-and-cassettes)), not from Claude. The tests, capture, checks and benchmarks really run on your machine. Web UI, or `uv run netzero run --demo`. |
-| Replay | nothing | Plays an `events.jsonl` back without running anything: any run's log with `uv run netzero replay <file>`, or a bundled replay in the web UI at `/replay`. Today the only bundled replay is synthetic (scripted events, not a measured run). |
+| Replay | nothing | Plays an `events.jsonl` back without running anything: any run's log with `uv run netzero replay <file>`, or a bundled replay in the web UI at `/replays`. Today the only bundled replay is synthetic (scripted events, not a measured run). |
 
 ### `.env`
 
@@ -334,8 +333,10 @@ its OpenAPI schema at `/openapi.json`; the web UI's generated types come from
 
 **SSE semantics.** The first frame is a comment that sets `retry: 2000`. The
 stream resumes after `max(Last-Event-ID, ?after=)`; every event frame has
-`id` set to its `seq` and the event JSON as `data`. After 15 s of silence the
-server sends `event: heartbeat` (no `id`, never persisted). The stream closes
+`id` set to its `seq` and the event JSON as `data`. The server sends
+`event: heartbeat` (no `id`, never persisted) once it has replayed the log on
+each connect and again after 15 s of silence; its `last_seq` tells a client
+whether it has caught up, and `server_ts` is the server's clock. The stream closes
 after the terminal event, and a finished run whose client is caught up gets
 204, which stops `EventSource` from reconnecting. A slow client whose queue
 overflows is disconnected and resumes from its last id. Runs driven by
@@ -428,7 +429,7 @@ expectations.
 ## Run history in Postgres
 
 Optional. With `NETZERO_DATABASE_URL` set, the server copies every run's
-events into Postgres and the web UI's History tab shows them: one card per
+events into Postgres and the web UI's History page shows them: one card per
 repository, runs over time, which functions improved across runs, and the
 diff each run merged.
 
@@ -455,12 +456,25 @@ The files under `runs/` stay the source of truth. Postgres is a copy: the
 server ships new lines every 1.5 s, picks up runs that `netzero run` wrote
 while it was down, and catches up after the database comes back.
 
-## Web UI (in progress)
+## Web UI
 
-The frontend is being built now; expect changes. `web/src/router.tsx`
-currently defines `/` (landing page), `/runs/:runId` (a run, live over SSE or
-finished), `/replay` (replay of a bundled run), `/history` and
-`/history/:projectId` (run history from Postgres) and `*` (not found).
+The routes are in `web/src/router.tsx`:
+
+- `/`: the landing page: what net-zero does, how a run works, why to trust
+  the result and how CO2e is estimated, linking into the app.
+- `/dashboard`: CO2e saved per 1M calls across completed live runs, counting
+  the newest run per repository, plus the running run, top improvements,
+  recent runs and a yearly estimate.
+- `/new`: start a run on a GitHub repository or the demo.
+- `/runs` and `/runs/:runId`: follow a run live, choose functions, cancel, and
+  download the patch.
+- `/replays` and `/replays/:replayId`: bundled recordings. Old `/replay?src=`
+  links redirect.
+- `/history`, `/history/:projectId` and `/history/:projectId/runs/:runId`:
+  run history from Postgres (see above), per project, and a stored run's
+  replay. Without a database the page says how to set one up.
+- `/settings`: what the server reports about itself.
+- Keyboard: `n` opens a new run, `/` filters runs.
 
 To work on the UI: `make run` serves the production build via `netzero
 serve`; `make dev` runs `netzero serve --reload` plus the Vite dev server,
@@ -508,7 +522,7 @@ netzero/bench/       Power probe, calibration, bench lane, statistics, units
 netzero/llm/         Anthropic client, prompts, structured outputs, cassettes, demo stories, pricing
 netzero/sandbox/     Child processes, env scrubbing, process groups, and the in-venv harness (pytest plugin, capture, diffcheck, bench worker, rlimit launcher)
 examples/            demo-repo (the target) and demo-stories (hand-written model replies)
-web/                 Vite + React UI (in progress)
+web/                 Vite + React UI
 tests/               unit, integration, e2e
 ```
 

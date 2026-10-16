@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Card, CardHeader } from '../ui/Card'
 
 const STEPS: readonly { title: string; command: string; note: ReactNode }[] = [
   {
@@ -26,17 +27,27 @@ const STEPS: readonly { title: string; command: string; note: ReactNode }[] = [
 /** How to turn history on, for a server running without a database. */
 export function Setup() {
   return (
-    <ol className="grid gap-px border border-dark-border bg-dark-border md:grid-cols-2">
-      {STEPS.map((step, i) => (
-        <li key={step.title} className="bg-dark p-6 md:p-8">
-          <p className="label">Step {i + 1}</p>
-          <p className="mt-3 text-white">{step.title}</p>
-          <code className="mt-4 block overflow-x-auto whitespace-nowrap border border-dark-border bg-[#0d0d0d] px-3 py-2 font-mono text-xs text-neon">
-            {step.command}
-          </code>
-          <p className="mt-3 text-sm leading-relaxed text-muted">{step.note}</p>
-        </li>
-      ))}
-    </ol>
+    <Card>
+      <CardHeader title="Turn on history" description="Four steps, about a minute" />
+      <ol className="divide-y divide-line border-t border-line">
+        {STEPS.map((step, i) => (
+          <li key={step.title} className="flex gap-3 px-5 py-4">
+            <span
+              aria-hidden="true"
+              className="grid size-7 shrink-0 place-items-center rounded-full border border-line bg-page text-xs font-medium text-ink-2"
+            >
+              {i + 1}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-base font-medium text-ink">{step.title}</p>
+              <code className="mt-2 block overflow-x-auto whitespace-nowrap rounded-lg border border-line bg-sidebar px-3 py-2 font-mono text-code text-ink">
+                {step.command}
+              </code>
+              <p className="mt-2 text-sm text-ink-3">{step.note}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </Card>
   )
 }

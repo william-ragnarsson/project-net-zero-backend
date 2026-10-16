@@ -230,7 +230,7 @@ ActivityType = Literal[
 
 class ActivityItem(_Model):
     position: int
-    seq: int  # within its run, for /replay?at=
+    seq: int  # within its run, for the stored replay link's ?at=
     ts: int
     type: ActivityType
     run_id: str

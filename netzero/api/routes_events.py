@@ -3,8 +3,9 @@
 * The first frame sets ``retry: 2000``.
 * The stream starts after ``max(Last-Event-ID, ?after)``: it replays the
   persisted log, then follows the live bus. Every event carries ``id: seq``.
-* ``event: heartbeat`` frames (no id) are sent when nothing happened for
-  ``sse_heartbeat_s``.
+* ``event: heartbeat`` frames (no id) are sent once the persisted log has
+  been replayed, so a client knows what follows is live, and whenever
+  nothing happened for ``sse_heartbeat_s``.
 * The stream ends after the terminal event. A slow client whose queue
   overflowed is disconnected and resumes from its last id.
 * 404 for an unknown run; 204 (EventSource stops reconnecting) when the run
@@ -127,6 +128,12 @@ async def _tail_file(
     path = store.paths(run_id).events
     offset, last = 0, after
     idle_s = owner_s = 0.0
+    caught_up = False
+
+    def heartbeat() -> ServerSentEvent:
+        summary = store.read_summary(run_id)
+        return _heartbeat(run_id, last, summary.state if summary else "created")
+
     while True:
         lines, offset = read_complete_lines(path, offset)
         for line in lines:
@@ -138,13 +145,16 @@ async def _tail_file(
             idle_s = 0.0
             if line_type(line) in TERMINAL_EVENT_TYPES:
                 return
+        if not caught_up:
+            # the file so far is replayed: what follows is live
+            caught_up = True
+            yield heartbeat()
         await asyncio.sleep(TAIL_INTERVAL_S)
         idle_s += TAIL_INTERVAL_S
         owner_s += TAIL_INTERVAL_S
         if idle_s >= manager.settings.sse_heartbeat_s:
             idle_s = 0.0
-            summary = store.read_summary(run_id)
-            yield _heartbeat(run_id, last, summary.state if summary else "created")
+            yield heartbeat()
         if owner_s >= OWNER_CHECK_S:
             owner_s = 0.0
             if not store.is_owned(run_id):
