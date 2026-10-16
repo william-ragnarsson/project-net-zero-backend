@@ -1,0 +1,26 @@
+diff --git a/datakit/aggregate.py b/datakit/aggregate.py
+--- a/datakit/aggregate.py
++++ b/datakit/aggregate.py
+@@ -1,17 +1,11 @@
+ """Grouped totals."""
++
++from collections import defaultdict
+ 
+ 
+ def total_by_category(rows):
+     """Sum ``row["amount"]`` per ``row["category"]``, categories in first-seen order."""
+-    categories = []
++    totals = defaultdict(int)
+     for row in rows:
+-        if row["category"] not in categories:
+-            categories.append(row["category"])
+-    totals = {}
+-    for category in categories:
+-        total = 0
+-        for row in rows:
+-            if row["category"] == category:
+-                total += row["amount"]
+-        totals[category] = total
+-    return totals
++        totals[row["category"]] += row["amount"]
++    return dict(totals)

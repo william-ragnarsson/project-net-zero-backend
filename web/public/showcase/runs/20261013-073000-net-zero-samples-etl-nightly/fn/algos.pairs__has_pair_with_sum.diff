@@ -1,0 +1,17 @@
+diff --git a/algos/pairs.py b/algos/pairs.py
+--- a/algos/pairs.py
++++ b/algos/pairs.py
+@@ -3,8 +3,9 @@
+ 
+ def has_pair_with_sum(numbers, target):
+     """True if two different positions in ``numbers`` add up to ``target``."""
+-    for i in range(len(numbers)):
+-        for j in range(len(numbers)):
+-            if i != j and numbers[i] + numbers[j] == target:
+-                return True
++    seen = set()
++    for x in numbers:
++        if target - x in seen:
++            return True
++        seen.add(x)
+     return False
