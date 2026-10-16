@@ -498,7 +498,9 @@ API key, and serves only the files you bundle into it.
    web run preview`.
 4. Commit `web/public/showcase/` and import the repository into Vercel with
    the Root Directory set to `web`. `web/vercel.json` sets the build command
-   and the SPA rewrites.
+   and the SPA rewrites. Link previews use `web/public/og.png`, drawn from
+   `web/scripts/og-card.html`. The build points `og:image` at Vercel's
+   production domain. On another host, set `SITE_URL` when you build.
 
 The showcase build (`VITE_SHOWCASE=1`, `web/src/showcase/config.ts`) reads
 those files instead of calling `/api`, and any request that would write fails
