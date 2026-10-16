@@ -109,8 +109,7 @@ export function LandingPage() {
               Make your Python use less energy.
             </h1>
             <p className="mx-auto mt-5 max-w-[600px] text-pretty text-md text-ink-2 sm:text-lg sm:font-normal">
-              net zero finds the functions that do the most work, has Claude rewrite them, and keeps a rewrite only when
-              it behaves the same and measurably uses less energy.
+              net zero finds the functions that do the most work, rewrites them, and saves the greener code.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link to="/new" className={`${buttonClass('primary', 'md')} h-11 px-5 text-md`}>
