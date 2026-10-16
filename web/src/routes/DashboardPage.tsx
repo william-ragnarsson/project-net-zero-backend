@@ -1,7 +1,7 @@
 // /dashboard: what the user's own runs have saved, what is running now, and what changed lately.
 import { useId, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
-import { useHealth, useRunDetails, useRuns } from '../api/queries'
+import { useHealth, useRunDetails, useRuns, useShowcaseKind } from '../api/queries'
 import { Co2 } from '../components/Co2'
 import { PageHeader } from '../components/PageHeader'
 import type { FunctionRecord, RunDetail, RunSummary } from '../gen/events'
@@ -21,6 +21,7 @@ import {
   type OutcomeGroup,
 } from '../lib/runs'
 import { useTitle } from '../lib/useTitle'
+import { SHOWCASE, SHOWCASE_RUNS, startLabel } from '../showcase/config'
 import { Badge } from '../ui/Badge'
 import { Button, buttonClass } from '../ui/Button'
 import { Card, CardHeader } from '../ui/Card'
@@ -45,6 +46,7 @@ export function DashboardPage() {
   useTitle('Dashboard')
   const runs = useRuns()
   const offline = useHealth().isError
+  const kind = useShowcaseKind()
   const impact = selectImpact(runs.data ?? [])
   const details = useRunDetails(impact.runs.slice(0, DETAILS))
 
@@ -86,7 +88,11 @@ export function DashboardPage() {
     <Page width="wide">
       <PageHeader
         title="Dashboard"
-        meta="What net zero has saved in your repositories, and what it is working on"
+        meta={
+          SHOWCASE
+            ? `What net zero saved in the ${kind === undefined ? 'runs on this site' : SHOWCASE_RUNS[kind]}`
+            : 'What net zero has saved in your repositories, and what it is working on'
+        }
         actions={
           <>
             <Link to="/replays" className={buttonClass('secondary', 'md')}>
@@ -95,7 +101,7 @@ export function DashboardPage() {
             </Link>
             <Link to="/new" className={buttonClass('primary', 'md')}>
               <Icon name="plus" />
-              New run
+              {startLabel('New run')}
             </Link>
           </>
         }
@@ -318,15 +324,19 @@ function NothingYet({ showStart }: { showStart: boolean }) {
       <span className="mx-auto grid size-10 place-items-center rounded-xl bg-accent-tint text-accent">
         <Icon name="leaf" size={20} />
       </span>
-      <h2 className="mt-4 text-md font-medium text-ink">No improvements from your own repositories yet</h2>
+      <h2 className="mt-4 text-md font-medium text-ink">
+        {SHOWCASE ? 'No improvements in these runs' : 'No improvements from your own repositories yet'}
+      </h2>
       <p className="mx-auto mt-1 max-w-[420px] text-pretty text-base text-ink-2">
-        When a run on one of your GitHub repositories finds a faster version of a function, its savings show up here.
+        {SHOWCASE
+          ? 'Savings count only runs on GitHub repositories. Run net zero on your own code to see yours.'
+          : 'When a run on one of your GitHub repositories finds a faster version of a function, its savings show up here.'}
       </p>
       {/* while a run is active, "Running now" is the next step and the form would be disabled */}
       {showStart && (
         <div className="mt-5 flex justify-center gap-2">
           <Link to="/new" className={buttonClass('primary', 'md')}>
-            Start a run
+            {startLabel('Start a run')}
           </Link>
         </div>
       )}
@@ -538,7 +548,7 @@ function GetStarted() {
         </p>
         <div className="mt-5 flex flex-wrap gap-2">
           <Link to="/new" className={buttonClass('primary', 'md')}>
-            Start a run
+            {startLabel('Start a run')}
           </Link>
           <Link to="/replays" className={buttonClass('secondary', 'md')}>
             Watch a replay

@@ -1,0 +1,26 @@
+{
+ "samples": [
+  "20261013-073000-net-zero-samples-etl-nightly",
+  "20261007-025500-net-zero-samples-metrics-agent",
+  "20261001-051000-net-zero-samples-ledger-api",
+  "20260930-104500-net-zero-samples-ledger-api",
+  "20260923-042000-net-zero-samples-search-indexer",
+  "20260915-080500-net-zero-samples-geo-tiles",
+  "20260908-034000-net-zero-samples-invoice-renderer"
+ ],
+ "artifacts": {
+  "/api/runs/20260908-034000-net-zero-samples-invoice-renderer/artifacts/patch": "/showcase/runs/20260908-034000-net-zero-samples-invoice-renderer/netzero-20260908-034000-net-zero-samples-invoice-renderer.patch",
+  "/api/runs/20260908-034000-net-zero-samples-invoice-renderer/artifacts/functions/textkit.dedupe%3Adedupe_preserve_order/diff": "/showcase/runs/20260908-034000-net-zero-samples-invoice-renderer/fn/textkit.dedupe__dedupe_preserve_order.diff",
+  "/api/runs/20260915-080500-net-zero-samples-geo-tiles/artifacts/patch": "/showcase/runs/20260915-080500-net-zero-samples-geo-tiles/netzero-20260915-080500-net-zero-samples-geo-tiles.patch",
+  "/api/runs/20260915-080500-net-zero-samples-geo-tiles/artifacts/functions/algos.graph%3AGraph.shortest_path_lengths/diff": "/showcase/runs/20260915-080500-net-zero-samples-geo-tiles/fn/algos.graph__Graph.shortest_path_lengths.diff",
+  "/api/runs/20260923-042000-net-zero-samples-search-indexer/artifacts/patch": "/showcase/runs/20260923-042000-net-zero-samples-search-indexer/netzero-20260923-042000-net-zero-samples-search-indexer.patch",
+  "/api/runs/20260923-042000-net-zero-samples-search-indexer/artifacts/functions/algos.strings%3Alevenshtein/diff": "/showcase/runs/20260923-042000-net-zero-samples-search-indexer/fn/algos.strings__levenshtein.diff",
+  "/api/runs/20260923-042000-net-zero-samples-search-indexer/artifacts/functions/textkit.freq%3Aword_frequencies/diff": "/showcase/runs/20260923-042000-net-zero-samples-search-indexer/fn/textkit.freq__word_frequencies.diff",
+  "/api/runs/20261001-051000-net-zero-samples-ledger-api/artifacts/patch": "/showcase/runs/20261001-051000-net-zero-samples-ledger-api/netzero-20261001-051000-net-zero-samples-ledger-api.patch",
+  "/api/runs/20261001-051000-net-zero-samples-ledger-api/artifacts/functions/datakit.aggregate%3Atotal_by_category/diff": "/showcase/runs/20261001-051000-net-zero-samples-ledger-api/fn/datakit.aggregate__total_by_category.diff",
+  "/api/runs/20261007-025500-net-zero-samples-metrics-agent/artifacts/patch": "/showcase/runs/20261007-025500-net-zero-samples-metrics-agent/netzero-20261007-025500-net-zero-samples-metrics-agent.patch",
+  "/api/runs/20261007-025500-net-zero-samples-metrics-agent/artifacts/functions/algos.primes%3Aprimes_below/diff": "/showcase/runs/20261007-025500-net-zero-samples-metrics-agent/fn/algos.primes__primes_below.diff",
+  "/api/runs/20261013-073000-net-zero-samples-etl-nightly/artifacts/patch": "/showcase/runs/20261013-073000-net-zero-samples-etl-nightly/netzero-20261013-073000-net-zero-samples-etl-nightly.patch",
+  "/api/runs/20261013-073000-net-zero-samples-etl-nightly/artifacts/functions/algos.pairs%3Ahas_pair_with_sum/diff": "/showcase/runs/20261013-073000-net-zero-samples-etl-nightly/fn/algos.pairs__has_pair_with_sum.diff"
+ }
+}

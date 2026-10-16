@@ -1,0 +1,154 @@
+[
+ {
+  "id": "20261013-073000-net-zero-samples-etl-nightly",
+  "created_ts": 1791891000000,
+  "updated_ts": 1791891084199,
+  "state": "completed",
+  "source": {
+   "kind": "github",
+   "url": "https://github.com/net-zero-samples/etl-nightly",
+   "ref": null
+  },
+  "mode": "live",
+  "functions_total": 5,
+  "functions_done": 5,
+  "counts_by_outcome": {
+   "accepted": 1,
+   "no_significant_win": 2,
+   "all_rejected": 1,
+   "reverted": 1
+  },
+  "mean_reduction_pct": -97.1,
+  "g_saved_per_1m_calls": 78.5143184839027,
+  "last_seq": 328
+ },
+ {
+  "id": "20261007-025500-net-zero-samples-metrics-agent",
+  "created_ts": 1791356100000,
+  "updated_ts": 1791356146506,
+  "state": "completed",
+  "source": {
+   "kind": "github",
+   "url": "https://github.com/net-zero-samples/metrics-agent",
+   "ref": null
+  },
+  "mode": "live",
+  "functions_total": 3,
+  "functions_done": 3,
+  "counts_by_outcome": {
+   "accepted": 1,
+   "no_significant_win": 1,
+   "failed": 1
+  },
+  "mean_reduction_pct": -97.8,
+  "g_saved_per_1m_calls": 35.39740269170439,
+  "last_seq": 177
+ },
+ {
+  "id": "20261001-051000-net-zero-samples-ledger-api",
+  "created_ts": 1790845800000,
+  "updated_ts": 1790845848902,
+  "state": "completed",
+  "source": {
+   "kind": "github",
+   "url": "https://github.com/net-zero-samples/ledger-api",
+   "ref": null
+  },
+  "mode": "live",
+  "functions_total": 4,
+  "functions_done": 4,
+  "counts_by_outcome": {
+   "accepted": 1,
+   "no_significant_win": 1,
+   "skipped_capture": 1,
+   "failed": 1
+  },
+  "mean_reduction_pct": -64.3,
+  "g_saved_per_1m_calls": 2.673978721753138,
+  "last_seq": 179
+ },
+ {
+  "id": "20260930-104500-net-zero-samples-ledger-api",
+  "created_ts": 1790779500000,
+  "updated_ts": 1790779504527,
+  "state": "failed",
+  "source": {
+   "kind": "github",
+   "url": "https://github.com/net-zero-samples/ledger-api",
+   "ref": null
+  },
+  "mode": "live",
+  "functions_total": 0,
+  "functions_done": 0,
+  "counts_by_outcome": {},
+  "mean_reduction_pct": null,
+  "g_saved_per_1m_calls": 0.0,
+  "last_seq": 15
+ },
+ {
+  "id": "20260923-042000-net-zero-samples-search-indexer",
+  "created_ts": 1790151600000,
+  "updated_ts": 1790151673168,
+  "state": "completed",
+  "source": {
+   "kind": "github",
+   "url": "https://github.com/net-zero-samples/search-indexer",
+   "ref": null
+  },
+  "mode": "live",
+  "functions_total": 4,
+  "functions_done": 4,
+  "counts_by_outcome": {
+   "accepted": 2,
+   "no_significant_win": 1,
+   "skipped_untestable": 1
+  },
+  "mean_reduction_pct": -44.8,
+  "g_saved_per_1m_calls": 0.9089347857479159,
+  "last_seq": 248
+ },
+ {
+  "id": "20260915-080500-net-zero-samples-geo-tiles",
+  "created_ts": 1789473900000,
+  "updated_ts": 1789473957600,
+  "state": "completed",
+  "source": {
+   "kind": "github",
+   "url": "https://github.com/net-zero-samples/geo-tiles",
+   "ref": null
+  },
+  "mode": "live",
+  "functions_total": 3,
+  "functions_done": 3,
+  "counts_by_outcome": {
+   "accepted": 1,
+   "all_rejected": 1,
+   "reverted": 1
+  },
+  "mean_reduction_pct": -61.8,
+  "g_saved_per_1m_calls": 1.3087887423992033,
+  "last_seq": 212
+ },
+ {
+  "id": "20260908-034000-net-zero-samples-invoice-renderer",
+  "created_ts": 1788853200000,
+  "updated_ts": 1788853254392,
+  "state": "completed",
+  "source": {
+   "kind": "github",
+   "url": "https://github.com/net-zero-samples/invoice-renderer",
+   "ref": null
+  },
+  "mode": "live",
+  "functions_total": 3,
+  "functions_done": 3,
+  "counts_by_outcome": {
+   "accepted": 1,
+   "no_significant_win": 1,
+   "skipped_untestable": 1
+  },
+  "mean_reduction_pct": -78.6,
+  "g_saved_per_1m_calls": 5.568610644711298,
+  "last_seq": 182
+ }
+]

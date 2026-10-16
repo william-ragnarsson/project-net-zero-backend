@@ -4,6 +4,7 @@
 import { eventsUrl, eventStreamUrl } from '../api/client'
 import type { Heartbeat, RunDetail, RunEvent } from '../gen/events'
 import { parseJsonl } from '../lib/jsonl'
+import { SHOWCASE } from '../showcase/config'
 import { createEventPump, type RunSessionStore, type Scheduler } from '../state/store'
 import { isEventLike } from './replayFile'
 
@@ -165,8 +166,8 @@ export function connectLive(session: RunSessionStore, runId: string, deps: LiveD
     session.getState().hydrate(events)
     failures = 0
     lastSeq = session.getState().hydratedThroughSeq
-    // a finished run's stream would only answer 204
-    if (final || isTerminal()) return setStatus({ kind: 'ended' })
+    // a finished run's stream would only answer 204, and the showcase has no stream
+    if (final || isTerminal() || SHOWCASE) return setStatus({ kind: 'ended' })
     if (status.kind === 'not_ready') setStatus({ kind: 'loading' })
     open()
   }

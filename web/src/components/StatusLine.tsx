@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { HEALTH_KEY, useHealth } from '../api/queries'
+import { OFFLINE_TEXT } from '../showcase/config'
 
 /**
  * The one quiet line under a page header. Offline wins over the page's own status (the run
@@ -15,7 +16,7 @@ export function StatusLine({ status }: { status?: string | null | undefined }) {
     if (qc.getQueryState(HEALTH_KEY)?.status === 'success') void qc.invalidateQueries()
   }
 
-  const text = offline ? 'Can’t reach the net-zero server' : (status ?? null)
+  const text = offline ? OFFLINE_TEXT : (status ?? null)
   return (
     <p role="status" aria-live="polite" className="basis-full text-sm text-ink-2 empty:hidden">
       {text}

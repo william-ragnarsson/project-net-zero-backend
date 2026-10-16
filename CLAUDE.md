@@ -13,6 +13,7 @@ real pipeline / FakePipeline ─emit─▶ EventBus ─append─▶ runs/<id>/ev
                                         └─▶ CLI renderer (netzero/render.py)
 runs/*/events.jsonl ─ship─▶ Postgres events ─▶ HistoryFold ─▶ read models ─▶ /api/history ─▶ History pages
 web/src/synth ─▶ web/public/replays/*.events.jsonl ─▶ replay driver ─▶ web reducer
+runs/<id>/ ─netzero showcase─▶ web/public/showcase/ (logs + projected run.json) ─▶ VITE_SHOWCASE build, no /api
 ```
 
 - **Contract**: `netzero/events.py` (events and run records) and `netzero/api/schemas.py` (REST bodies plus the `Contract` export root). `web/src/gen/` is generated from them by `make types`. Edit the Python, regenerate, and commit both. `tests/unit/test_events.py` fails when `schema.json` is stale.
@@ -46,7 +47,7 @@ The two halves are coupled only through the log, so a change that looks local ca
 - Edit the contract, run `make types`, then fix what `make test-web` reports. A new event type fails `tsc` and the reducer test until it has a handler.
 - Re-check the grammar. If a rule really changed, update `grammar.py`, because the reducer depends on those rules.
 - Teach `FakePipeline` and `web/src/synth/` to emit the change. Then regenerate the bundled replay with `npm --prefix web run synth` (a vitest compares the committed file with the scenario) and validate it with `uv run netzero replay --check web/public/replays/synthetic.events.jsonl`.
-- Copy any projection change into the reducer and selectors.
+- Copy any projection change into the reducer and selectors. The committed showcase (`web/public/showcase/`) holds a `run.json` projected when it was bundled, so `tests/unit/test_showcase.py` fails until you rebundle with `uv run netzero showcase --samples` (plus any recorded runs).
 - Every model uses `extra="forbid"`. Renaming or removing a field means existing `runs/` logs and committed replays no longer parse. Add new fields with defaults where you can, and bump `SCHEMA_VERSION` when a break can't be avoided.
 
 **When you change the frontend**, check what the change assumes about the stream:
@@ -58,6 +59,7 @@ The two halves are coupled only through the log, so a change that looks local ca
 - The tree's frontier is the one open function (grammar: one function open at a time). Its hold on a finished layer is display state in `web/src/tree/frontierHold.ts` and resets on `RunSession.epoch` (bumped by hydrate and discontinuous batches). Never put it in `RunModel`.
 - The run page picks its view from the model alone (`web/src/run/view.ts`). It waits 400 ms in `awaiting_selection` before showing the choice, because an auto-selected run emits `run.selection.confirmed` right after; `RunCreatedData` does not say whether `auto_select` was set.
 - Every value the UI shows comes from the model, a selector or the REST summaries. A gap, such as bench progress, is a contract proposal; never interpolate from timing.
+- The showcase build has no server. `showcasePath` (`web/src/showcase/config.ts`) maps a few GET `/api` reads to static files, and every other request fails with code `showcase`. A page that needs more data must hide that data in the showcase, or `netzero showcase` must bundle it.
 
 ## Current state (October 2026)
 
@@ -66,6 +68,7 @@ The two halves are coupled only through the log, so a change that looks local ca
 - Run history in Postgres and the History pages (`/history`, `/history/:projectId`, `web/src/history/`) landed. A stored run replays at `/history/:projectId/runs/:runId` from `/api/history/runs/{id}/events.jsonl`. `make db` starts a database. The history has no integration tests yet.
 - `NETZERO_FAKE_PIPELINE=1 make dev` runs scripted live runs with no API key, git or uv. It's the quickest way to drive the UI with a real stream.
 - The demo cassettes are generated from the hand-written `examples/demo-stories`. `make demo-cassettes` deletes any recorded cassettes.
+- The showcase site is a static build (`npm --prefix web run build:showcase`, deployed by `web/vercel.json`) that plays back runs bundled into `web/public/showcase/`. In this build `/new` shows local setup steps, and History and Settings are hidden. For now it holds only sample runs (`uv run netzero showcase --samples`): FakePipeline runs on made-up `net-zero-samples/*` repositories, listed in `showcase.json` so the banner, sidebar and page headers can call them samples. Keep that labelling when real runs are added.
 
 ## Keeping this file current
 

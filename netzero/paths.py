@@ -10,6 +10,7 @@ ROOT = PACKAGE_DIR.parent
 WEB_DIR = ROOT / "web"
 WEB_DIST = WEB_DIR / "dist"
 WEB_PUBLIC_REPLAYS = WEB_DIR / "public" / "replays"
+WEB_PUBLIC_SHOWCASE = WEB_DIR / "public" / "showcase"
 SCHEMA_OUT = WEB_DIR / "src" / "gen" / "schema.json"
 
 HARNESS_DIR = PACKAGE_DIR / "sandbox" / "harness"

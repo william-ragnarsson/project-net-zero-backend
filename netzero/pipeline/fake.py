@@ -17,8 +17,10 @@ correction.
 
 Scenarios: ``demo`` (8 preselected functions: 6 accepted, 1 all_rejected,
 1 no_significant_win), ``short`` (3 functions) and ``fail_env`` (the install
-step fails). ``speed`` divides every sleep; at 1 a demo run takes ~2.5 min,
-at >= 1000 sleeps become ``asyncio.sleep(0)``.
+step fails). ``selection`` replaces the scenario's preselected functions with any
+from the catalog. ``speed`` divides every sleep; at 1 a demo run takes ~2.5 min,
+at >= 1000 sleeps become ``asyncio.sleep(0)``. ``run_fake`` drives one run through
+a real ``RunManager``.
 """
 
 from __future__ import annotations
@@ -31,10 +33,11 @@ import math
 import random
 import textwrap
 import zipfile
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import Literal
+from pathlib import Path
+from typing import TYPE_CHECKING, Literal
 from urllib.parse import quote
 
 from scipy.stats import t as student_t
@@ -89,6 +92,9 @@ from netzero.pipeline.common import pct as _pct
 from netzero.pipeline.common import reap as _reap
 from netzero.pipeline.run import FunctionScope, RunContext
 
+if TYPE_CHECKING:
+    from netzero.api.schemas import CreateRunRequest
+
 __all__ = [
     "CATALOG",
     "DEMO_SELECTION",
@@ -100,6 +106,7 @@ __all__ = [
     "FakePlan",
     "FakeRewrite",
     "Scenario",
+    "run_fake",
 ]
 
 Scenario = Literal["demo", "short", "fail_env"]
@@ -2195,14 +2202,24 @@ class FakePipeline:
     The same ``seed`` and scenario give the same events, ``ts`` and durations aside.
     """
 
-    def __init__(self, speed: float = 1.0, *, scenario: Scenario = "demo", seed: int = 0):
+    def __init__(
+        self,
+        speed: float = 1.0,
+        *,
+        scenario: Scenario = "demo",
+        seed: int = 0,
+        selection: Sequence[str] | None = None,
+    ):
         if not speed > 0:
             raise ValueError(f"speed must be > 0, got {speed!r}")
         if scenario not in SCENARIOS:
             raise ValueError(f"unknown scenario {scenario!r}; expected one of {SCENARIOS}")
+        if unknown := [fid for fid in selection or () if fid not in CATALOG]:
+            raise ValueError(f"not in the catalog: {', '.join(unknown)}")
         self.speed = float(speed)
         self.scenario: Scenario = scenario
         self.seed = seed
+        self.selection = None if selection is None else tuple(selection)
 
     async def __call__(self, ctx: RunContext) -> None:
         await _FakeRun(self, ctx).run()
@@ -2433,6 +2450,8 @@ class _FakeRun:
             )
 
     def preselection(self) -> list[str]:
+        if self.pipe.selection is not None:
+            return list(self.pipe.selection)
         if self.pipe.scenario == "short":
             return list(SHORT_SELECTION)
         return list(DEMO_SELECTION[: max(0, self.s.preselect)])
@@ -3200,3 +3219,39 @@ def expected_outcome(function_id: str) -> FunctionOutcome:
     if fn is None or fn.fate == "not_selectable":
         return "failed"
     return fn.fate  # type: ignore[return-value]
+
+
+async def run_fake(
+    runs_dir: Path,
+    pipeline: FakePipeline,
+    request: CreateRunRequest | None = None,
+    *,
+    epoch_ms: int,
+) -> Path:
+    """One auto-selected run of ``pipeline`` in ``runs_dir``; returns its events.jsonl.
+
+    Run it under ``VirtualTimeLoop`` and the scripted minutes take about a second. The
+    run's clock starts at ``epoch_ms``, which also stamps its id. The default request is
+    the demo repository.
+    """
+    from netzero.api.schemas import CreateRunRequest
+    from netzero.config import Settings
+    from netzero.pipeline.orchestrator import RunManager
+
+    loop = asyncio.get_running_loop()
+    start = loop.time()
+    settings = Settings(_env_file=None, runs_dir=runs_dir, fake_pipeline=True)  # type: ignore[call-arg]
+    manager = RunManager(
+        settings,
+        pipeline=pipeline,  # type: ignore[arg-type]
+        power=lambda: None,  # the fake detects its own power source
+        clock=lambda: epoch_ms + int((loop.time() - start) * 1000),
+    )
+    manager.start()
+    try:
+        req = request or CreateRunRequest(demo=True)
+        summary = await manager.create(req.model_copy(update={"auto_select": True}))
+        await manager.wait(summary.id)
+    finally:
+        await manager.shutdown(timeout=2)
+    return manager.store.paths(summary.id).events

@@ -1,13 +1,14 @@
 // /runs: every run, filtered by repository and run type through the URL.
 import { useEffect, type ReactNode } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router'
-import { useHealth, useRuns } from '../api/queries'
+import { useHealth, useRuns, useShowcaseKind } from '../api/queries'
 import { Co2 } from '../components/Co2'
 import { PageHeader } from '../components/PageHeader'
 import type { RunSummary } from '../gen/events'
 import { formatGrams, formatPct, formatWhen, NONE } from '../lib/format'
 import { filterRuns, isTerminal, repoOf, runStatus, runValue, TONE_CLASS, type RunFilterMode } from '../lib/runs'
 import { useTitle } from '../lib/useTitle'
+import { SHOWCASE, SHOWCASE_RUNS, startLabel } from '../showcase/config'
 import { Badge } from '../ui/Badge'
 import { Button, buttonClass } from '../ui/Button'
 import { Card } from '../ui/Card'
@@ -35,6 +36,7 @@ export function RunsPage() {
   useTitle('Runs')
   const runs = useRuns()
   const offline = useHealth().isError
+  const kind = useShowcaseKind()
   const location = useLocation()
   const [params, setParams] = useSearchParams()
   const q = params.get('q') ?? ''
@@ -70,7 +72,7 @@ export function RunsPage() {
           actions={
             <>
               <Link to="/new" className={buttonClass('primary', 'md')}>
-                Start a run
+                {startLabel('Start a run')}
               </Link>
               <Link to="/replays" className={buttonClass('secondary', 'md')}>
                 Watch a replay
@@ -145,11 +147,11 @@ export function RunsPage() {
     <Page>
       <PageHeader
         title="Runs"
-        meta="Every run on this server, newest first"
+        meta={SHOWCASE ? `Every one of the ${kind === undefined ? 'runs on this site' : SHOWCASE_RUNS[kind]}, newest first` : 'Every run on this server, newest first'}
         actions={
           <Link to="/new" className={buttonClass('primary', 'md')}>
             <Icon name="plus" />
-            New run
+            {startLabel('New run')}
           </Link>
         }
       />

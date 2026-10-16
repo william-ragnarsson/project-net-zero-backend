@@ -182,7 +182,7 @@ class RunManager:
         run_lock: FileLock | None = None
         ctx: RunContext | None = None
         try:
-            run_id = self.store.new_run_id(label)
+            run_id = self.store.new_run_id(label, self.clock() / 1000)
             rp = self.store.paths(run_id)
             rp.mkdirs()
             run_lock = FileLock(rp.lock)

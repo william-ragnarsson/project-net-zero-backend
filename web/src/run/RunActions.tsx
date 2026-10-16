@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { eventsUrl, isApiError } from '../api/client'
-import { useCancel } from '../api/queries'
+import { useArtifactHref, useCancel } from '../api/queries'
+import { SHOWCASE } from '../showcase/config'
 import type { RunModel } from '../state/types'
 import { Button, buttonClass } from '../ui/Button'
 import { Menu, MenuItem } from '../ui/Menu'
@@ -98,6 +99,7 @@ export function RunActions({
   model: RunModel
   onNotice: (n: RunNotice | null) => void
 }) {
+  const href = useArtifactHref()
   if (view === 'finding' || view === 'choose' || view === 'optimizing') {
     return <CancelButton runId={runId} model={model} onNotice={onNotice} />
   }
@@ -108,18 +110,18 @@ export function RunActions({
   )
   if (view === 'done') {
     const artifacts = model.steps.artifacts?.result ?? null
-    const patch = artifacts?.patch ?? null
-    const zip = artifacts?.zip ?? null
+    const patch = href(artifacts?.patch?.url)
+    const zip = href(artifacts?.zip?.url)
     return (
       <>
-        {patch !== null && (
-          <a href={patch.url} download className={buttonClass('primary')}>
+        {patch !== undefined && (
+          <a href={patch} download className={buttonClass('primary')}>
             Download patch
           </a>
         )}
         <Menu label="More actions">
-          {zip !== null && (
-            <MenuItem href={zip.url} download="">
+          {zip !== undefined && (
+            <MenuItem href={zip} download="">
               Download zip
             </MenuItem>
           )}
@@ -130,7 +132,8 @@ export function RunActions({
     )
   }
   if (view === 'ended') {
-    const again = runAgainHref(model)
+    // the showcase can't start runs
+    const again = SHOWCASE ? null : runAgainHref(model)
     return (
       <>
         {again !== null && (

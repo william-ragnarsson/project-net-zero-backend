@@ -160,6 +160,16 @@ async def test_preselect_setting_trims_demo(tmp_path: Path, settings: Settings) 
     assert list(outcomes(events)) == list(DEMO_SELECTION[:2])
 
 
+async def test_selection_replaces_the_preselection(tmp_path: Path, settings: Settings) -> None:
+    _, events = await run_fake(tmp_path, settings, selection=[MOVING, LEV])
+    assert list(outcomes(events)) == [MOVING, LEV]
+
+
+def test_selection_outside_the_catalog_is_refused() -> None:
+    with pytest.raises(ValueError, match="ghost"):
+        FakePipeline(selection=[LEV, UNKNOWN])
+
+
 async def test_manual_selection(tmp_path: Path, settings: Settings) -> None:
     ctx = make_ctx(tmp_path, settings, auto_select=False)
     task = asyncio.create_task(FakePipeline(speed=1000)(ctx))
